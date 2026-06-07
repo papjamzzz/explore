@@ -58,11 +58,14 @@ def ableton_send(command_type, params=None):
         return {"error": str(e)}
 
 def get_all_tracks():
-    session = ableton_send("get_session_info")
+    raw_session = ableton_send("get_session_info")
+    # AbletonMCP wraps responses: {"status":"success","result":{...}}
+    session = raw_session.get("result", raw_session) if isinstance(raw_session, dict) else {}
     count = session.get("track_count", 0) if isinstance(session, dict) else 0
     tracks = []
     for i in range(min(count, 24)):
-        t = ableton_send("get_track_info", {"track_index": i})
+        raw_t = ableton_send("get_track_info", {"track_index": i})
+        t = raw_t.get("result", raw_t) if isinstance(raw_t, dict) else raw_t
         if isinstance(t, dict) and "error" not in t:
             tracks.append(t)
         time.sleep(0.02)
@@ -444,13 +447,14 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 /* ── Light theme ── */
 body.light{
   --bg:#EDF0F8;--panel:#F4F6FC;--panel2:#FFFFFF;--panel3:#EAEEf8;
-  --border:#D4DCEE;--border2:#BCC8E0;--border3:#A8B8D0;
-  --text:#1A1E2E;--dim:#607090;--dim2:#8898B8;
-  --teal:#008878;--teal2:#00A898;--purple:#6820B8;--gold:#A08010;
-  --red:#C03030;--green:#189050;--orange:#B05818;--coral:#C83048;
-  --teal-dim:rgba(0,136,120,.08);
-  --glow-teal:rgba(0,168,152,.12);--glow-purple:rgba(104,32,184,.12);--glow-coral:rgba(200,48,72,.12);
-  background-image:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(104,32,184,.03) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(0,136,120,.03) 0%,transparent 60%);
+  --border:#C8D4E8;--border2:#B0C0D8;--border3:#98AABE;
+  --text:#0E1422;--dim:#2A3A50;--dim2:#4A5A72;
+  --teal:#007868;--teal2:#009888;--purple:#5A18A8;--gold:#906800;
+  --red:#B82020;--green:#0F7840;--orange:#984810;--coral:#B82040;
+  --teal-dim:rgba(0,120,104,.08);
+  --glow-teal:rgba(0,152,136,.12);--glow-purple:rgba(90,24,168,.12);--glow-coral:rgba(184,32,64,.12);
+  background-image:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(90,24,168,.03) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(0,120,104,.03) 0%,transparent 60%);
+  font-size:13px;
 }
 body.light .hdr{background:rgba(244,246,252,.97);box-shadow:0 1px 8px rgba(0,0,0,.06);}
 body.light .track-row:hover{background:#EAEFF8;}
@@ -464,6 +468,36 @@ body.light .donut-bg{stroke:#DDE5F5;}
 body.light .chart-panel{background:linear-gradient(180deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.3) 100%);}
 body.light .stats-strip{background:var(--panel);}
 body.light .stat-card{background:var(--panel);}
+/* Light mode — size + contrast upgrades */
+body.light .panel-hdr{font-size:10px;color:var(--text);letter-spacing:.14em;}
+body.light .track-name{font-size:13px;color:var(--text);}
+body.light .track-num{font-size:10px;color:var(--dim);}
+body.light .track-score{font-size:11px;}
+body.light .stat-icon{font-size:11px;color:var(--text);font-weight:900;}
+body.light .stat-val{font-size:16px;font-weight:900;}
+body.light .stat-sub{font-size:10px;color:var(--dim);}
+body.light .stat-label{font-size:11px;color:var(--dim);}
+body.light .gb-label{font-size:10px;color:var(--text);}
+body.light .gb-val{font-size:11px;color:var(--text);}
+body.light .gb-btn{font-size:11px;}
+body.light .chart-title{font-size:10px;color:var(--text);}
+body.light .donut-name{font-size:10px;color:var(--dim);}
+body.light .knob-lbl{font-size:9.5px;color:var(--dim);}
+body.light .knob-val{font-size:9.5px;color:var(--text);}
+body.light .prob-detail-sm{font-size:11px;color:var(--dim);}
+body.light .prob-fix-sm{font-size:11px;}
+body.light .prob-title{font-size:12px;font-weight:800;}
+body.light .msg-bubble{font-size:12px;color:var(--text);}
+body.light .chat-input{font-size:12px;color:var(--text);}
+body.light .hdr-health-sub{font-size:9px;color:var(--dim);}
+body.light .brand-sub{font-size:9px;color:var(--dim);}
+body.light .pill{font-size:10px;color:var(--dim);border-color:var(--border2);}
+body.light .scan-label{font-size:10px;color:var(--dim);}
+body.light .th-meta{font-size:10px;color:var(--dim);}
+body.light .th-score-lbl{font-size:9px;color:var(--dim);}
+body.light .empty{font-size:12px;color:var(--dim);}
+body.light .msg-meta{font-size:10px;color:var(--dim2);}
+body.light .ableton-status-lbl{font-size:10px;color:var(--dim);}
 body.light .sidebar{background:var(--panel);}
 body.light .right{background:var(--panel);}
 body.light .gain-bridge{background:var(--panel);}
@@ -1175,6 +1209,7 @@ function renderGain(g) {
 
 // ── Gain Bridge ───────────────────────────────────────────────────────────────
 var _gbMuted = false;
+var _gbLastMode = '';
 
 function gbPost(fields) {
   fetch('/api/gain/set', {
@@ -1264,6 +1299,14 @@ function gbSyncFromGain(g) {
   var exploreBtn = document.getElementById('gb-explore-btn');
   if (buildBtn)   buildBtn.classList.toggle('active', mode === 'BUILD');
   if (exploreBtn) exploreBtn.classList.toggle('active', mode === 'EXPLORE');
+  // Auto-run when nano switches to EXPLORE and prompt has text
+  if (mode === 'EXPLORE' && _gbLastMode !== 'EXPLORE') {
+    var promptEl = document.getElementById('gb-prompt');
+    if (promptEl && promptEl.value.trim()) {
+      setTimeout(gbRun, 300); // slight delay so button state settles
+    }
+  }
+  _gbLastMode = mode;
   // Mute
   _gbMuted = (g.t1_on === false);
   var muteBtn = document.getElementById('gb-mute-btn');
