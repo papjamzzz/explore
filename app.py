@@ -941,8 +941,12 @@ async function loadCues() {
 }
 
 // ── Chat ───────────────────────────────────────────────────────────────────────
-function quickPrompt(p) {
+async function quickPrompt(p) {
   document.getElementById('chat-input').value = p;
+  if (!sessionCtx) {
+    toast('Scanning session first...');
+    await ensureScanned();
+  }
   sendMessage();
 }
 
@@ -950,6 +954,11 @@ async function sendMessage() {
   var input = document.getElementById('chat-input');
   var prompt = input.value.trim();
   if (!prompt) return;
+  // If no session data yet, scan first
+  if (!sessionCtx) {
+    toast('Scanning session first...');
+    await ensureScanned();
+  }
   input.value = '';
   addMessage('user', prompt);
   var btn = document.getElementById('send-btn');
@@ -1014,12 +1023,21 @@ function toast(msg, err) {
   toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2800);
 }
 
-// ── Auto-check Ableton on load ────────────────────────────────────────────────
-fetch('/api/session').then(function(r) { return r.json(); }).then(function(d) {
-  if (d.tracks && d.tracks.length) {
-    document.getElementById('ableton-dot').classList.add('on');
-  }
-}).catch(function() {});
+// ── Auto-scan on load ─────────────────────────────────────────────────────────
+var scanPromise = null;
+
+function ensureScanned() {
+  // If already have data, resolve immediately
+  if (sessionCtx) return Promise.resolve();
+  // If scan in flight, return same promise
+  if (scanPromise) return scanPromise;
+  // Kick off scan
+  scanPromise = runScan().then(function() { scanPromise = null; });
+  return scanPromise;
+}
+
+// Auto-scan silently on load
+ensureScanned();
 </script>
 </body>
 </html>"""
