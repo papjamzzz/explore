@@ -392,14 +392,15 @@ HTML = """<!DOCTYPE html>
 <style>
 *{box-sizing:border-box;margin:0;padding:0;}
 :root{
-  --bg:#030507;--panel:#060A0F;--panel2:#0A1018;--panel3:#0D1520;
-  --border:#162030;--border2:#1E2E40;--border3:#243848;
-  --text:#D8EAF8;--dim:#486880;--dim2:#3A5268;
-  --teal:#00A898;--teal2:#00D4C8;--purple:#7B2FD4;--gold:#C8A843;
-  --red:#C84030;--green:#28B060;--orange:#C87030;--coral:#E05060;
-  --teal-dim:rgba(0,168,152,.1);
+  --bg:#07050F;--panel:#0C0A18;--panel2:#110E22;--panel3:#161230;
+  --border:#1A1535;--border2:#241E48;--border3:#2E2860;
+  --text:#E0D8F8;--dim:#5A5080;--dim2:#3A3260;
+  --teal:#00B8A8;--teal2:#00E0D0;--purple:#8B3FE4;--gold:#D4B050;
+  --red:#D84840;--green:#30C070;--orange:#D88040;--coral:#E85870;
+  --teal-dim:rgba(0,184,168,.1);
+  --glow-teal:rgba(0,224,208,.18);--glow-purple:rgba(139,63,228,.18);--glow-coral:rgba(232,88,112,.18);
 }
-body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:12px;height:100vh;display:flex;flex-direction:column;overflow:hidden;}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:12px;height:100vh;display:flex;flex-direction:column;overflow:hidden;background-image:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(139,63,228,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(0,184,168,.05) 0%,transparent 60%);}
 
 /* ── Header ── */
 .hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:50px;border-bottom:1px solid var(--border);background:rgba(3,5,7,.97);flex-shrink:0;z-index:10;}
@@ -448,20 +449,16 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .center{flex:1;display:flex;flex-direction:column;overflow:hidden;border-right:1px solid var(--border);}
 
 /* Charts strip */
-.charts-strip{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);height:190px;}
-.chart-panel{flex:1;padding:10px 12px;border-right:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;}
-.chart-panel:last-child{border-right:none;flex:0 0 200px;}
-.chart-title{font-size:7.5px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-bottom:8px;flex-shrink:0;display:flex;align-items:center;gap:6px;}
-.chart-title-track{color:var(--teal);font-weight:700;letter-spacing:.05em;text-transform:none;font-size:8px;}
-.health-svg-wrap{flex:1;overflow:hidden;}
-#health-svg{width:100%;display:block;}
-
-/* Freq bands in chart area */
-.freq-band{display:flex;align-items:center;gap:6px;margin-bottom:5px;}
-.band-label{font-size:7.5px;font-weight:700;color:var(--dim);width:28px;flex-shrink:0;letter-spacing:.05em;}
-.band-bar-wrap{flex:1;height:9px;background:var(--panel2);border-radius:3px;overflow:hidden;border:1px solid var(--border);}
-.band-bar{height:100%;border-radius:3px;transition:width .4s ease;}
-.band-pct{font-size:7.5px;font-weight:700;width:24px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.charts-strip{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);height:240px;}
+.chart-panel{flex:1;padding:12px 14px;border-right:1px solid var(--border);overflow:hidden;display:flex;flex-direction:column;background:linear-gradient(180deg,rgba(255,255,255,.015) 0%,transparent 100%);}
+.chart-panel:last-child{border-right:none;flex:0 0 210px;}
+.chart-title{font-size:7.5px;font-weight:800;letter-spacing:.2em;text-transform:uppercase;color:var(--dim);margin-bottom:10px;flex-shrink:0;display:flex;align-items:center;gap:6px;}
+.chart-title-track{color:var(--teal2);font-weight:700;letter-spacing:.05em;text-transform:none;font-size:8px;opacity:.85;}
+.health-svg-wrap{flex:1;overflow:hidden;position:relative;}
+#health-svg{width:100%;height:100%;display:block;}
+/* Cylinder freq chart */
+#freq-bands{flex:1;overflow:hidden;display:flex;align-items:stretch;}
+#freq-bands svg{width:100%;height:100%;}
 
 /* Problems strip */
 .problems-strip{flex-shrink:0;border-bottom:1px solid var(--border);overflow-y:auto;max-height:100px;}
@@ -725,8 +722,8 @@ input[type=range].gb-slider.verbosity::-moz-range-thumb{width:12px;height:60px;b
           Frequency Map
           <span class="chart-title-track" id="freq-track-name"></span>
         </div>
-        <div id="freq-bands" style="flex:1;display:flex;flex-direction:column;justify-content:center">
-          <div style="color:var(--dim2);font-size:9.5px;text-align:center">Click a track</div>
+        <div id="freq-bands" style="flex:1;overflow:hidden;display:flex;align-items:stretch;">
+          <div style="color:var(--dim2);font-size:9px;text-align:center;padding-top:40px;width:100%">Click a track</div>
         </div>
       </div>
     </div>
@@ -1264,38 +1261,112 @@ function renderProblems(problems) {
 
 function renderHealthChart(tracks, scores) {
   var svgEl = document.getElementById('health-svg');
-  if (!svgEl || !tracks.length) { if (svgEl) svgEl.innerHTML = ''; return; }
-  var rowH = 20;
-  var barX = 108;
-  var maxW = 155;
-  var totalH = tracks.length * rowH + 4;
-  svgEl.setAttribute('viewBox', '0 0 280 ' + totalH);
-  svgEl.setAttribute('height', Math.min(totalH, 170));
-  var html = '<defs>'
-    + '<linearGradient id="hg-g" x1="0" y1="0" x2="1" y2="0">'
-    + '<stop offset="0%" stop-color="#009690"/><stop offset="100%" stop-color="#28B060"/>'
-    + '</linearGradient>'
-    + '<linearGradient id="hg-y" x1="0" y1="0" x2="1" y2="0">'
-    + '<stop offset="0%" stop-color="#C87030"/><stop offset="100%" stop-color="#C8A843"/>'
-    + '</linearGradient>'
-    + '<linearGradient id="hg-r" x1="0" y1="0" x2="1" y2="0">'
-    + '<stop offset="0%" stop-color="#C84030"/><stop offset="100%" stop-color="#C87030"/>'
-    + '</linearGradient>'
-    + '</defs>';
-  for (var i = 0; i < tracks.length; i++) {
-    var t = tracks[i];
-    var name = (t.name || ('Track ' + (i+1))).substring(0, 14);
-    var score = scores[t.name] || 72;
-    var barW = Math.round((score / 100) * maxW);
-    var grad = score >= 80 ? 'url(#hg-g)' : score >= 60 ? 'url(#hg-y)' : 'url(#hg-r)';
-    var col  = score >= 80 ? '#28B060'    : score >= 60 ? '#C8A843'    : '#C84030';
-    var y = i * rowH + 2;
-    html += '<g transform="translate(0,' + y + ')">'
-      + '<text x="0" y="12" font-size="8.5" fill="#486880" font-family="Inter,sans-serif">' + esc(name) + '</text>'
-      + '<rect x="' + barX + '" y="3" width="' + barW + '" height="10" rx="3" fill="' + grad + '" opacity=".85"/>'
-      + '<text x="' + (barX + barW + 5) + '" y="12" font-size="8.5" fill="' + col + '" font-family="Inter,sans-serif" font-weight="700">' + score + '</text>'
-      + '</g>';
+  if (!svgEl) return;
+  if (!tracks.length) { svgEl.innerHTML = ''; return; }
+
+  var W = 400, H = 200;
+  svgEl.setAttribute('viewBox', '0 0 ' + W + ' ' + H);
+  svgEl.setAttribute('preserveAspectRatio', 'none');
+
+  var n = tracks.length;
+  var padL = 24, padR = 12, padT = 12, padB = 24;
+  var chartW = W - padL - padR;
+  var chartH = H - padT - padB;
+
+  // Build data points
+  var pts = [];
+  for (var i = 0; i < n; i++) {
+    var sc = scores[tracks[i].name] !== undefined ? scores[tracks[i].name] : 72;
+    var x = padL + (n === 1 ? chartW / 2 : (i / (n - 1)) * chartW);
+    var y = padT + chartH - (sc / 100) * chartH;
+    pts.push({x: x, y: y, score: sc, name: tracks[i].name || ('T' + (i+1))});
   }
+
+  // Smooth bezier path
+  function bezierPath(points) {
+    if (!points.length) return '';
+    if (points.length === 1) return 'M' + points[0].x + ',' + points[0].y;
+    var d = 'M' + points[0].x + ',' + points[0].y;
+    for (var k = 1; k < points.length; k++) {
+      var prev = points[k-1], curr = points[k];
+      var cpx = (prev.x + curr.x) / 2;
+      d += ' C' + cpx + ',' + prev.y + ' ' + cpx + ',' + curr.y + ' ' + curr.x + ',' + curr.y;
+    }
+    return d;
+  }
+
+  var linePath = bezierPath(pts);
+  var areaPath = linePath
+    + ' L' + pts[pts.length-1].x + ',' + (padT + chartH)
+    + ' L' + pts[0].x + ',' + (padT + chartH) + ' Z';
+
+  // Color by avg score
+  var avg = 0;
+  for (var i = 0; i < pts.length; i++) avg += pts[i].score;
+  avg = avg / pts.length;
+  var c1 = avg >= 75 ? '#00E0D0' : avg >= 55 ? '#D88040' : '#E85870';
+  var c2 = avg >= 75 ? '#008880' : avg >= 55 ? '#905020' : '#901830';
+  var cMid = avg >= 75 ? '#00B8A8' : avg >= 55 ? '#B86030' : '#C03050';
+
+  var html = '<defs>'
+    + '<linearGradient id="wf" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0%" stop-color="' + c1 + '" stop-opacity=".5"/>'
+    + '<stop offset="70%" stop-color="' + c2 + '" stop-opacity=".12"/>'
+    + '<stop offset="100%" stop-color="' + c2 + '" stop-opacity=".02"/>'
+    + '</linearGradient>'
+    + '<linearGradient id="wl" x1="0" y1="0" x2="1" y2="0">'
+    + '<stop offset="0%" stop-color="' + c1 + '" stop-opacity=".35"/>'
+    + '<stop offset="30%" stop-color="' + c1 + '"/>'
+    + '<stop offset="70%" stop-color="' + c1 + '"/>'
+    + '<stop offset="100%" stop-color="' + c1 + '" stop-opacity=".35"/>'
+    + '</linearGradient>'
+    + '<filter id="glow"><feGaussianBlur stdDeviation="3" result="blur"/>'
+    + '<feMerge><feMergeNode in="blur"/><feMergeNode in="SourceGraphic"/></feMerge></filter>'
+    + '</defs>';
+
+  // Grid lines
+  var gridVals = [25, 50, 75, 100];
+  for (var g = 0; g < gridVals.length; g++) {
+    var gv = gridVals[g];
+    var gy = padT + chartH - (gv / 100) * chartH;
+    html += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy
+      + '" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>';
+    html += '<text x="' + (padL - 4) + '" y="' + (gy + 3) + '" font-size="7" fill="rgba(255,255,255,.18)"'
+      + ' text-anchor="end" font-family="Inter,sans-serif">' + gv + '</text>';
+  }
+
+  // Area fill
+  html += '<path d="' + areaPath + '" fill="url(#wf)"/>';
+
+  // Glow blur line
+  html += '<path d="' + linePath + '" fill="none" stroke="' + c1 + '" stroke-width="6"'
+    + ' stroke-opacity=".2" stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // Main line
+  html += '<path d="' + linePath + '" fill="none" stroke="url(#wl)" stroke-width="2.5"'
+    + ' stroke-linecap="round" stroke-linejoin="round"/>';
+
+  // Dots + labels
+  for (var j = 0; j < pts.length; j++) {
+    var p = pts[j];
+    var dc = p.score >= 80 ? '#00E0D0' : p.score >= 60 ? '#D88040' : '#E85870';
+    var tname = p.name.substring(0, 9);
+    // Drop line
+    html += '<line x1="' + p.x + '" y1="' + p.y + '" x2="' + p.x + '" y2="' + (padT + chartH)
+      + '" stroke="rgba(255,255,255,.06)" stroke-width="1" stroke-dasharray="2,3"/>';
+    // Outer ring
+    html += '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="' + dc + '" opacity=".2"/>';
+    // Dot
+    html += '<circle cx="' + p.x + '" cy="' + p.y + '" r="3" fill="' + dc
+      + '" stroke="rgba(0,0,0,.6)" stroke-width="1"/>';
+    // Score label above dot
+    html += '<text x="' + p.x + '" y="' + (p.y - 8) + '" font-size="8" fill="' + dc
+      + '" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800">' + p.score + '</text>';
+    // Track name at bottom
+    html += '<text x="' + p.x + '" y="' + (H - 4) + '" font-size="6.5" fill="rgba(255,255,255,.22)"'
+      + ' text-anchor="middle" font-family="Inter,sans-serif">' + esc(tname) + '</text>';
+  }
+
   svgEl.innerHTML = html;
 }
 
@@ -1303,37 +1374,111 @@ function renderFreqMap(adat, trackName) {
   var el = document.getElementById('freq-bands');
   var label = document.getElementById('freq-track-name');
   if (!adat || adat.peak_db === undefined) {
-    el.innerHTML = '<div style="color:var(--dim2);font-size:9.5px;text-align:center">No audio data</div>';
-    label.textContent = '';
+    el.innerHTML = '<div style="color:var(--dim2);font-size:9px;text-align:center;padding-top:40px">Click a track</div>';
+    if (label) label.textContent = '';
     return;
   }
-  label.textContent = trackName || '';
+  if (label) label.textContent = trackName || '';
+
   var bands = [
-    {label:'SUB',  key:'sub_energy'},
-    {label:'BASS', key:'bass_energy'},
-    {label:'LMID', key:'low_mid_energy'},
-    {label:'MID',  key:'mid_energy'},
-    {label:'HMID', key:'high_mid_energy'},
-    {label:'AIR',  key:'air_energy'},
+    {label:'SUB',  key:'sub_energy',      crit: function(p){return p>25;}, warn: function(p){return p>18;}},
+    {label:'BASS', key:'bass_energy',     crit: function(p){return p>40;}, warn: function(p){return p>30;}},
+    {label:'LMID', key:'low_mid_energy',  crit: function(p){return p>28;}, warn: function(p){return p>18;}},
+    {label:'MID',  key:'mid_energy',      crit: function(p){return false;},warn: function(p){return false;}},
+    {label:'HMID', key:'high_mid_energy', crit: function(p){return false;},warn: function(p){return false;}},
+    {label:'AIR',  key:'air_energy',      crit: function(p){return false;},warn: function(p){return false;}},
   ];
-  var html = '';
-  for (var i = 0; i < bands.length; i++) {
+
+  // SVG cylinder chart
+  var W = 186, H = 200;
+  var n = bands.length;
+  var colW = W / n;
+  var cylW = Math.floor(colW * 0.62);
+  var rx = cylW / 2;
+  var ry = Math.max(3, Math.floor(rx * 0.32));
+  var baseY = H - 22;
+  var maxBarH = baseY - 18;
+
+  var svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" xmlns="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet"><defs>';
+
+  // Gradients per band
+  for (var i = 0; i < n; i++) {
     var b = bands[i];
     var raw = adat[b.key] || 0;
     var p = Math.round(raw * 100);
-    var col = (b.label === 'LMID' && p > 25) ? 'var(--red)'
-            : (b.label === 'LMID' && p > 18) ? 'var(--orange)'
-            : (b.label === 'SUB'  && p > 25) ? 'var(--orange)'
-            : (b.label === 'BASS' && p > 35) ? 'var(--orange)'
-            : 'var(--teal)';
-    var barW = Math.min(100, Math.round(p * 2.5));
-    html += '<div class="freq-band">'
-      + '<span class="band-label">' + b.label + '</span>'
-      + '<div class="band-bar-wrap"><div class="band-bar" style="width:' + barW + '%;background:' + col + '"></div></div>'
-      + '<span class="band-pct" style="color:' + col + '">' + p + '%</span>'
-      + '</div>';
+    var isCrit = b.crit(p), isWarn = b.warn(p);
+    var ca = isCrit ? '#E85870' : isWarn ? '#D88040' : '#00E0D0';
+    var cb = isCrit ? '#701020' : isWarn ? '#804010' : '#006858';
+    var cc = isCrit ? '#B03050' : isWarn ? '#A05828' : '#00A898';
+
+    svg += '<linearGradient id="cbody' + i + '" x1="0" y1="0" x2="1" y2="0">'
+      + '<stop offset="0%" stop-color="' + cb + '"/>'
+      + '<stop offset="35%" stop-color="' + cc + '"/>'
+      + '<stop offset="65%" stop-color="' + ca + '"/>'
+      + '<stop offset="100%" stop-color="' + cb + '"/>'
+      + '</linearGradient>';
+    svg += '<radialGradient id="ctop' + i + '" cx="42%" cy="38%" r="58%">'
+      + '<stop offset="0%" stop-color="#ffffff" stop-opacity=".55"/>'
+      + '<stop offset="60%" stop-color="' + ca + '" stop-opacity=".9"/>'
+      + '<stop offset="100%" stop-color="' + cb + '" stop-opacity=".7"/>'
+      + '</radialGradient>';
+    svg += '<radialGradient id="cbot' + i + '" cx="50%" cy="50%" r="50%">'
+      + '<stop offset="0%" stop-color="' + cc + '" stop-opacity=".6"/>'
+      + '<stop offset="100%" stop-color="' + cb + '" stop-opacity=".3"/>'
+      + '</radialGradient>';
   }
-  el.innerHTML = html;
+
+  // Glow filter
+  svg += '<filter id="cglow" x="-40%" y="-40%" width="180%" height="180%">'
+    + '<feGaussianBlur stdDeviation="2.5" result="b"/>'
+    + '<feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>'
+    + '</filter>';
+  svg += '</defs>';
+
+  // Floor line
+  svg += '<line x1="4" y1="' + baseY + '" x2="' + (W-4) + '" y2="' + baseY
+    + '" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+
+  // Cylinders
+  for (var i = 0; i < n; i++) {
+    var b = bands[i];
+    var raw = adat[b.key] || 0;
+    var p = Math.round(raw * 100);
+    var isCrit = b.crit(p), isWarn = b.warn(p);
+    var ca = isCrit ? '#E85870' : isWarn ? '#D88040' : '#00E0D0';
+    var cb = isCrit ? '#701020' : isWarn ? '#804010' : '#006858';
+
+    var barH = Math.max(ry * 2 + 2, Math.round((Math.min(p, 100) / 100) * maxBarH));
+    var cx = i * colW + colW / 2;
+    var topY = baseY - barH;
+    var bodyH = barH - ry;
+
+    // Shadow glow under cylinder
+    svg += '<ellipse cx="' + cx + '" cy="' + baseY + '" rx="' + (rx * 1.3) + '" ry="' + (ry * 0.7)
+      + '" fill="' + ca + '" opacity=".08"/>';
+
+    // Body
+    svg += '<rect x="' + (cx - rx) + '" y="' + topY + '" width="' + (rx*2) + '" height="' + bodyH
+      + '" fill="url(#cbody' + i + ')"/>';
+
+    // Bottom cap
+    svg += '<ellipse cx="' + cx + '" cy="' + (topY + bodyH) + '" rx="' + rx + '" ry="' + ry
+      + '" fill="url(#cbot' + i + ')"/>';
+
+    // Top cap (highlight)
+    svg += '<ellipse cx="' + cx + '" cy="' + topY + '" rx="' + rx + '" ry="' + ry
+      + '" fill="url(#ctop' + i + ')" filter="url(#cglow)"/>';
+
+    // Percentage above
+    svg += '<text x="' + cx + '" y="' + (topY - ry - 4) + '" font-size="8.5" fill="' + ca
+      + '" text-anchor="middle" font-family="Inter,sans-serif" font-weight="900">' + p + '%</text>';
+
+    // Band label below floor
+    svg += '<text x="' + cx + '" y="' + (H - 5) + '" font-size="7" fill="rgba(255,255,255,.35)"'
+      + ' text-anchor="middle" font-family="Inter,sans-serif" font-weight="800">' + b.label + '</text>';
+  }
+
+  el.innerHTML = svg + '</svg>';
 }
 
 // ── Track selection + Device inspector ────────────────────────────────────────
