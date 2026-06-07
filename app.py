@@ -1146,13 +1146,12 @@ body.light .chord-drop-lbl{font-size:11px;}
         Chord ID
         <span style="font-size:8px;color:var(--dim2);font-weight:500;letter-spacing:.04em">drop a stem</span>
       </div>
-      <input type="file" id="chord-file-input" accept="audio/*" style="display:none" onchange="runChordID(this.files[0])">
+      <input type="file" id="chord-file-input" accept=".mp3,.wav,.flac,.aiff,.aif,.m4a,.ogg" style="display:none">
       <div class="chord-drop-zone" id="chord-drop-zone"
-           onclick="document.getElementById('chord-file-input').click()"
            ondragover="event.preventDefault();this.classList.add('drag-over')"
            ondragleave="this.classList.remove('drag-over')"
            ondrop="event.preventDefault();this.classList.remove('drag-over');runChordID(event.dataTransfer.files[0])">
-        <div class="chord-drop-lbl">↑ Upload or drag a stem · <span>click to browse</span></div>
+        <div class="chord-drop-lbl" id="chord-drop-lbl">↑ Upload or drag a stem · <span>click to browse</span></div>
       </div>
       <div id="chord-results" style="display:none">
         <div class="chord-key-row">
@@ -2035,14 +2034,18 @@ function resizeGBSliders() {
 window.addEventListener('resize', resizeGBSliders);
 
 // ── Chord ID ──────────────────────────────────────────────────────────────────
+function chordDropLbl(html) {
+  var el = document.getElementById('chord-drop-lbl');
+  if (el) el.innerHTML = html;
+}
+
 async function runChordID(file) {
   if (!file) return;
-  var proc  = document.getElementById('chord-processing');
-  var res   = document.getElementById('chord-results');
-  var drop  = document.getElementById('chord-drop-zone');
-  proc.style.display = 'block';
-  res.style.display  = 'none';
-  drop.querySelector('.chord-drop-lbl').textContent = '⏳ ' + file.name;
+  var proc = document.getElementById('chord-processing');
+  var res  = document.getElementById('chord-results');
+  if (proc) proc.style.display = 'block';
+  if (res)  res.style.display  = 'none';
+  chordDropLbl('⏳ Analyzing ' + file.name + '…');
 
   var fd = new FormData();
   fd.append('file', file);
@@ -2050,10 +2053,11 @@ async function runChordID(file) {
   try {
     var r = await fetch('/api/chords', {method:'POST', body: fd});
     var d = await r.json();
-    proc.style.display = 'none';
+    if (proc) proc.style.display = 'none';
 
     if (d.error) {
-      drop.querySelector('.chord-drop-lbl').innerHTML = '⚠ ' + d.error + ' · <span>try again</span>';
+      chordDropLbl('⚠ ' + d.error + ' · <span>try again</span>');
+      toast('Chord ID error: ' + d.error, true);
       return;
     }
 
@@ -2062,12 +2066,12 @@ async function runChordID(file) {
     document.getElementById('chord-key-mode').textContent = d.mode || '';
     document.getElementById('chord-key-conf').textContent = d.duration ? d.duration + 's' : '';
 
-    // Chord chips (unique chords, tonic highlighted)
+    // Chord chips
     var listEl = document.getElementById('chord-list');
     listEl.innerHTML = '';
     (d.chord_list || []).forEach(function(ch) {
       var chip = document.createElement('div');
-      chip.className = 'chord-chip' + (ch === d.root || ch === d.root+'m' ? ' tonic' : '');
+      chip.className = 'chord-chip' + (ch === d.root || ch === d.root + 'm' ? ' tonic' : '');
       chip.textContent = ch;
       listEl.appendChild(chip);
     });
@@ -2075,7 +2079,7 @@ async function runChordID(file) {
     // Timeline
     var tl = document.getElementById('chord-timeline');
     tl.innerHTML = '';
-    var maxDur = Math.max.apply(null, (d.segments||[]).map(function(s){return s.dur;}));
+    var maxDur = Math.max.apply(null, (d.segments || []).map(function(s){ return s.dur; }));
     (d.segments || []).forEach(function(seg) {
       var row = document.createElement('div');
       row.className = 'chord-row';
@@ -2087,12 +2091,17 @@ async function runChordID(file) {
       tl.appendChild(row);
     });
 
-    res.style.display = 'block';
-    drop.querySelector('.chord-drop-lbl').innerHTML = '✓ ' + file.name + ' · <span>upload another</span>';
-    toast('Chord ID complete — ' + (d.chord_list||[]).length + ' chords in ' + d.key);
+    if (res) res.style.display = 'block';
+    chordDropLbl('✓ ' + file.name + ' · <span>upload another</span>');
+    toast('Chord ID — ' + (d.chord_list || []).length + ' chords · ' + d.key);
+
+    // Reset file input so same file can be re-uploaded
+    var inp = document.getElementById('chord-file-input');
+    if (inp) inp.value = '';
+
   } catch(e) {
-    proc.style.display = 'none';
-    drop.querySelector('.chord-drop-lbl').innerHTML = '⚠ Error · <span>try again</span>';
+    if (proc) proc.style.display = 'none';
+    chordDropLbl('⚠ Failed · <span>try again</span>');
     toast('Chord ID failed: ' + e.message, true);
   }
 }
@@ -2114,6 +2123,23 @@ ensureScanned();
 // Size sliders after layout is painted
 setTimeout(resizeGBSliders, 80);
 setTimeout(resizeGBSliders, 400);
+
+// Chord ID — wire file input via addEventListener (more reliable than onchange attr)
+(function() {
+  var inp  = document.getElementById('chord-file-input');
+  var zone = document.getElementById('chord-drop-zone');
+  if (inp) {
+    inp.addEventListener('change', function() {
+      if (this.files && this.files[0]) runChordID(this.files[0]);
+    });
+  }
+  if (zone) {
+    zone.addEventListener('click', function() {
+      var i = document.getElementById('chord-file-input');
+      if (i) i.click();
+    });
+  }
+})();
 </script>
 </body>
 </html>"""
