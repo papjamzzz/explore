@@ -639,7 +639,7 @@ input[type=range].gb-slider.verbosity::-moz-range-thumb{width:12px;height:60px;b
 .loading{color:var(--dim);font-style:italic;}
 </style>
 </head>
-<body>
+<body class="light">
 
 <!-- ── Header ──────────────────────────────────────────────────────── -->
 <div class="hdr">
@@ -1736,10 +1736,12 @@ window.addEventListener('resize', resizeGBSliders);
 // ── Init ──────────────────────────────────────────────────────────────────────
 // Theme — default light
 (function() {
-  var t = localStorage.getItem('explore_theme') || 'light';
-  if (t === 'light') document.body.classList.add('light');
+  // Light is the HTML default — only switch to dark if explicitly saved
+  if (localStorage.getItem('explore_theme') === 'dark') {
+    document.body.classList.remove('light');
+  }
   var btn = document.getElementById('theme-btn');
-  if (btn) btn.textContent = (t === 'light') ? '◑' : '◐';
+  if (btn) btn.textContent = document.body.classList.contains('light') ? '◑' : '◐';
 })();
 loadState();
 fetchGain();
