@@ -358,6 +358,22 @@ def api_state_post():
     save_server_state(state)
     return jsonify({"ok": True})
 
+@app.route("/api/gain/set", methods=["POST"])
+def api_gain_set():
+    d = request.get_json() or {}
+    state_path = Path.home() / ".streamfader" / "state.json"
+    try:
+        current = {}
+        if state_path.exists():
+            current = json.loads(state_path.read_text())
+        current.update(d)
+        tmp = state_path.parent / (state_path.name + ".tmp")
+        tmp.write_text(json.dumps(current, indent=2) + "\n")
+        tmp.rename(state_path)
+        return jsonify({"ok": True})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/")
 def index():
     return render_template_string(HTML)
@@ -476,6 +492,37 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .send-btn{padding:0 14px;border-radius:8px;background:var(--teal);border:none;color:#000;font-size:9.5px;font-weight:800;letter-spacing:.1em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;transition:opacity .15s;}
 .send-btn:hover{opacity:.85;}
 .send-btn:disabled{opacity:.35;cursor:not-allowed;}
+
+/* ── Gain Bridge (leftmost panel) ── */
+.gain-bridge{width:150px;border-right:1px solid var(--border);display:flex;flex-direction:column;flex-shrink:0;background:var(--panel);}
+.gb-faders{flex:1;display:flex;min-height:0;border-bottom:1px solid var(--border);}
+.gb-fader{flex:1;display:flex;flex-direction:column;align-items:center;padding:12px 0 6px;border-right:1px solid var(--border);}
+.gb-fader:last-child{border-right:none;}
+.gb-label{font-size:6.5px;font-weight:900;letter-spacing:.14em;text-transform:uppercase;margin-bottom:10px;}
+.gb-label.effort{color:var(--teal2);}
+.gb-label.verbosity{color:#9B6FE0;}
+.gb-slider-wrap{flex:1;display:flex;align-items:center;justify-content:center;width:100%;overflow:hidden;}
+.gb-val{font-size:10.5px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:7px;height:15px;}
+.gb-val.effort{color:var(--teal2);}
+.gb-val.verbosity{color:#9B6FE0;}
+input[type=range].gb-slider{-webkit-appearance:none;appearance:none;transform:rotate(-90deg);width:120px;height:32px;cursor:pointer;outline:none;background:transparent;margin:0;padding:0;flex-shrink:0;}
+input[type=range].gb-slider::-webkit-slider-runnable-track{height:4px;border-radius:2px;}
+input[type=range].gb-slider.effort::-webkit-slider-runnable-track{background:linear-gradient(to right,#003830,#00D4C8);}
+input[type=range].gb-slider.verbosity::-webkit-slider-runnable-track{background:linear-gradient(to right,#2D0E5C,#9B6FE0);}
+input[type=range].gb-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:10px;height:28px;background:linear-gradient(90deg,#162230,#2E4560,#162230);border-radius:4px;border:1px solid #486880;box-shadow:0 1px 5px rgba(0,0,0,.85),inset 0 1px 0 rgba(255,255,255,.07);margin-top:-13px;}
+input[type=range].gb-slider::-webkit-slider-thumb:hover{border-color:#6A98B8;}
+input[type=range].gb-slider::-moz-range-track{height:4px;border-radius:2px;background:#162030;}
+input[type=range].gb-slider::-moz-range-thumb{width:10px;height:28px;background:linear-gradient(90deg,#162230,#2E4560,#162230);border-radius:4px;border:1px solid #486880;}
+.gb-btns{display:flex;flex-direction:column;gap:5px;padding:8px;flex-shrink:0;}
+.gb-btn{width:100%;padding:10px 0;font-size:9px;font-weight:900;letter-spacing:.12em;border-radius:6px;border:none;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .12s,background .15s,color .15s;}
+.gb-btn:hover{opacity:.82;}
+.gb-btn:active{opacity:.65;}
+.gb-btn.build{background:#1A2535;color:#6A8FAD;}
+.gb-btn.build.active{background:var(--purple);color:#fff;box-shadow:0 0 10px rgba(123,47,212,.4);}
+.gb-btn.explore{background:#1A2535;color:#6A8FAD;}
+.gb-btn.explore.active{background:var(--teal);color:#000;box-shadow:0 0 10px rgba(0,168,152,.4);}
+.gb-btn.mute{background:transparent;color:var(--dim);border:1px solid var(--border2);font-size:8px;padding:6px 0;}
+.gb-btn.mute.active{background:rgba(200,64,48,.12);color:var(--red);border-color:rgba(200,64,48,.45);}
 
 /* ── Right panel ── */
 .right{width:262px;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
@@ -607,6 +654,38 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 
 <!-- ── Main ────────────────────────────────────────────────────────── -->
 <div class="main">
+
+  <!-- Gain Bridge (leftmost) -->
+  <div class="gain-bridge">
+    <div class="panel-hdr">Gain Bridge</div>
+    <div class="gb-faders">
+      <div class="gb-fader">
+        <div class="gb-label effort">EFFORT</div>
+        <div class="gb-slider-wrap">
+          <input type="range" class="gb-slider effort" id="gb-effort" min="0" max="100" value="50"
+            oninput="gbFaderInput('intensity', this.value)"
+            onmousedown="this._drag=true" onmouseup="this._drag=false"
+            ontouchstart="this._drag=true" ontouchend="this._drag=false">
+        </div>
+        <div class="gb-val effort" id="gb-effort-val">0.50</div>
+      </div>
+      <div class="gb-fader">
+        <div class="gb-label verbosity">VERBOSITY</div>
+        <div class="gb-slider-wrap">
+          <input type="range" class="gb-slider verbosity" id="gb-verbosity" min="0" max="100" value="50"
+            oninput="gbFaderInput('room', this.value)"
+            onmousedown="this._drag=true" onmouseup="this._drag=false"
+            ontouchstart="this._drag=true" ontouchend="this._drag=false">
+        </div>
+        <div class="gb-val verbosity" id="gb-verbosity-val">0.50</div>
+      </div>
+    </div>
+    <div class="gb-btns">
+      <button class="gb-btn build"   id="gb-build-btn"   onclick="gbMode('BUILD')">BUILD</button>
+      <button class="gb-btn explore" id="gb-explore-btn" onclick="gbMode('EXPLORE')">EXPLORE</button>
+      <button class="gb-btn mute"    id="gb-mute-btn"    onclick="gbMute()">MUTE</button>
+    </div>
+  </div>
 
   <!-- Sidebar: track list -->
   <div class="sidebar">
@@ -977,6 +1056,72 @@ function renderGain(g) {
   updateKnob('risk',      g.risk);
   updateKnob('bandwidth', g.bandwidth);
   updateKnob('decay',     g.decay);
+
+  // Gain Bridge
+  gbSyncFromGain(g);
+}
+
+// ── Gain Bridge ───────────────────────────────────────────────────────────────
+var _gbMuted = false;
+
+function gbPost(fields) {
+  fetch('/api/gain/set', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(fields)
+  }).catch(function() {});
+}
+
+function gbFaderInput(field, rawVal) {
+  var val = Math.round(rawVal * 10) / 1000;  // 0-100 → 0.000-1.000
+  val = parseFloat(val.toFixed(3));
+  var elId = field === 'intensity' ? 'gb-effort-val' : 'gb-verbosity-val';
+  document.getElementById(elId).textContent = val.toFixed(2);
+  var payload = {};
+  payload[field] = val;
+  gbPost(payload);
+}
+
+function gbMode(mode) {
+  var buildBtn   = document.getElementById('gb-build-btn');
+  var exploreBtn = document.getElementById('gb-explore-btn');
+  var cur = buildBtn.classList.contains('active') ? 'BUILD'
+          : exploreBtn.classList.contains('active') ? 'EXPLORE' : '';
+  var next = (cur === mode) ? '' : mode;
+  buildBtn.classList.toggle('active', next === 'BUILD');
+  exploreBtn.classList.toggle('active', next === 'EXPLORE');
+  gbPost({mode: next});
+}
+
+function gbMute() {
+  _gbMuted = !_gbMuted;
+  var btn = document.getElementById('gb-mute-btn');
+  if (btn) btn.classList.toggle('active', _gbMuted);
+  gbPost({t1_on: !_gbMuted});
+}
+
+function gbSyncFromGain(g) {
+  // Update faders (skip if user is actively dragging)
+  var effortEl = document.getElementById('gb-effort');
+  if (effortEl && !effortEl._drag && g.intensity !== undefined) {
+    effortEl.value = Math.round((g.intensity || 0) * 100);
+    document.getElementById('gb-effort-val').textContent = (g.intensity || 0).toFixed(2);
+  }
+  var verbEl = document.getElementById('gb-verbosity');
+  if (verbEl && !verbEl._drag && g.room !== undefined) {
+    verbEl.value = Math.round((g.room || 0) * 100);
+    document.getElementById('gb-verbosity-val').textContent = (g.room || 0).toFixed(2);
+  }
+  // Mode buttons
+  var mode = g.mode || '';
+  var buildBtn   = document.getElementById('gb-build-btn');
+  var exploreBtn = document.getElementById('gb-explore-btn');
+  if (buildBtn)   buildBtn.classList.toggle('active', mode === 'BUILD');
+  if (exploreBtn) exploreBtn.classList.toggle('active', mode === 'EXPLORE');
+  // Mute
+  _gbMuted = (g.t1_on === false);
+  var muteBtn = document.getElementById('gb-mute-btn');
+  if (muteBtn) muteBtn.classList.toggle('active', _gbMuted);
 }
 
 async function fetchGain() {
