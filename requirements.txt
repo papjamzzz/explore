@@ -1,3 +1,9 @@
 flask
 python-dotenv
 requests
+anthropic
+librosa
+pyloudnorm
+numpy
+scipy
+soundfile
