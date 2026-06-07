@@ -400,10 +400,53 @@ HTML = """<!DOCTYPE html>
   --teal-dim:rgba(0,184,168,.1);
   --glow-teal:rgba(0,224,208,.18);--glow-purple:rgba(139,63,228,.18);--glow-coral:rgba(232,88,112,.18);
 }
-body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:12px;height:100vh;display:flex;flex-direction:column;overflow:hidden;background-image:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(139,63,228,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(0,184,168,.05) 0%,transparent 60%);}
+body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;font-size:12px;height:100vh;display:flex;flex-direction:column;overflow:hidden;background-image:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(139,63,228,.06) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(0,184,168,.05) 0%,transparent 60%);transition:background .25s,color .25s;}
+
+/* ── Light theme ── */
+body.light{
+  --bg:#EDF0F8;--panel:#F4F6FC;--panel2:#FFFFFF;--panel3:#EAEEf8;
+  --border:#D4DCEE;--border2:#BCC8E0;--border3:#A8B8D0;
+  --text:#1A1E2E;--dim:#607090;--dim2:#8898B8;
+  --teal:#008878;--teal2:#00A898;--purple:#6820B8;--gold:#A08010;
+  --red:#C03030;--green:#189050;--orange:#B05818;--coral:#C83048;
+  --teal-dim:rgba(0,136,120,.08);
+  --glow-teal:rgba(0,168,152,.12);--glow-purple:rgba(104,32,184,.12);--glow-coral:rgba(200,48,72,.12);
+  background-image:radial-gradient(ellipse 80% 50% at 20% 0%,rgba(104,32,184,.03) 0%,transparent 60%),radial-gradient(ellipse 60% 40% at 80% 100%,rgba(0,136,120,.03) 0%,transparent 60%);
+}
+body.light .hdr{background:rgba(244,246,252,.97);box-shadow:0 1px 8px rgba(0,0,0,.06);}
+body.light .track-row:hover{background:#EAEFF8;}
+body.light .track-row.selected{background:rgba(0,136,120,.07);border-left-color:var(--teal);}
+body.light .type-midi{background:rgba(0,136,120,.1);color:#009888;}
+body.light .type-audio{background:rgba(104,32,184,.08);color:#6820B8;}
+body.light .msg.user .msg-bubble{background:rgba(0,136,120,.07);border-color:rgba(0,136,120,.18);}
+body.light .msg.ai .msg-bubble{background:#FFFFFF;border-color:#D4DCEE;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+body.light .chat-input{background:#FFFFFF;border-color:#BCC8E0;color:#1A1E2E;}
+body.light .donut-bg{stroke:#DDE5F5;}
+body.light .chart-panel{background:linear-gradient(180deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.3) 100%);}
+body.light .stats-strip{background:var(--panel);}
+body.light .stat-card{background:var(--panel);}
+body.light .sidebar{background:var(--panel);}
+body.light .right{background:var(--panel);}
+body.light .gain-bridge{background:var(--panel);}
+body.light .gain-mode-pill{background:rgba(0,136,120,.12);}
+body.light .gain-mode-pill.build{background:rgba(104,32,184,.1);}
+/* GB sliders on light */
+body.light input[type=range].gb-slider::-webkit-slider-runnable-track{background:#D0DAF0;box-shadow:inset 0 1px 3px rgba(0,0,0,.12),inset 0 -1px 1px rgba(0,0,0,.06);border:1px solid rgba(0,0,0,.09);}
+body.light input[type=range].gb-slider.effort::-webkit-slider-thumb{background:linear-gradient(90deg,#D8F2F0 0%,#A8E4E0 22%,#80D8D4 44%,rgba(0,180,168,.3) 50%,#80D8D4 56%,#A8E4E0 78%,#D8F2F0 100%);border:1px solid #009888;box-shadow:0 2px 8px rgba(0,152,136,.2),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.08);}
+body.light input[type=range].gb-slider.effort::-webkit-slider-thumb:hover{border-color:var(--teal2);box-shadow:0 0 8px rgba(0,168,152,.35),0 2px 8px rgba(0,0,0,.1);}
+body.light input[type=range].gb-slider.verbosity::-webkit-slider-thumb{background:linear-gradient(90deg,#EEE8F8 0%,#D4C0F0 22%,#BCA0E8 44%,rgba(104,32,184,.25) 50%,#BCA0E8 56%,#D4C0F0 78%,#EEE8F8 100%);border:1px solid #6820B8;box-shadow:0 2px 8px rgba(104,32,184,.2),inset 0 1px 0 rgba(255,255,255,.9),inset 0 -1px 0 rgba(0,0,0,.08);}
+body.light input[type=range].gb-slider.verbosity::-webkit-slider-thumb:hover{border-color:#9B6FE0;box-shadow:0 0 8px rgba(104,32,184,.35),0 2px 8px rgba(0,0,0,.1);}
+body.light .gb-label.effort{color:#009888;}
+body.light .gb-label.verbosity{color:#6820B8;}
+body.light .gb-val.effort{color:#009888;}
+body.light .gb-val.verbosity{color:#6820B8;}
+body.light .gb-btn.build{background:#E8EEF8;color:#4A6890;}
+body.light .gb-btn.explore{background:#E8EEF8;color:#4A6890;}
+body.light .gb-btn.mute{border-color:#C0CADF;color:#8898B8;}
+body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50%,#C8D4E8 0%,transparent 100%);}
 
 /* ── Header ── */
-.hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:50px;border-bottom:1px solid var(--border);background:rgba(3,5,7,.97);flex-shrink:0;z-index:10;}
+.hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:50px;border-bottom:1px solid var(--border);background:rgba(7,5,15,.97);flex-shrink:0;z-index:10;transition:background .25s;}
 .brand{font-size:15px;font-weight:900;letter-spacing:5px;color:var(--teal);}
 .brand-sub{font-size:7.5px;font-weight:700;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;margin-top:1px;}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s;}
@@ -415,6 +458,8 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 .hdr-health-fill{height:100%;border-radius:2px;transition:width .5s;}
 .hdr-right{margin-left:auto;display:flex;gap:5px;align-items:center;flex-wrap:nowrap;}
 .pill{padding:4px 9px;border-radius:20px;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border2);background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap;}
+.theme-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:15px;padding:3px 8px;cursor:pointer;transition:all .15s;line-height:1.2;flex-shrink:0;}
+.theme-btn:hover{color:var(--text);border-color:var(--border3);}
 .pill:hover{border-color:var(--teal);color:var(--teal);}
 .pill.primary{background:var(--teal);color:#000;border-color:var(--teal);}
 .pill.primary:hover{opacity:.85;}
@@ -613,6 +658,7 @@ input[type=range].gb-slider.verbosity::-moz-range-thumb{width:12px;height:60px;b
   </div>
 
   <div class="hdr-right">
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">◑</button>
     <button class="pill primary" onclick="runScan()">⟳ Scan</button>
     <button class="pill" onclick="clearChat()" title="Clear chat history">✕ Chat</button>
     <button class="pill" onclick="quickPrompt('Why does this mix sound muddy?')">Mud?</button>
@@ -1325,13 +1371,18 @@ function renderHealthChart(tracks, scores) {
     + '</defs>';
 
   // Grid lines
+  var lt = isLight();
+  var gridStroke = lt ? 'rgba(0,0,0,.07)' : 'rgba(255,255,255,.04)';
+  var gridLabel  = lt ? 'rgba(0,0,0,.3)'  : 'rgba(255,255,255,.18)';
+  var dropStroke = lt ? 'rgba(0,0,0,.07)' : 'rgba(255,255,255,.06)';
+  var nameColor  = lt ? 'rgba(0,0,0,.4)'  : 'rgba(255,255,255,.22)';
   var gridVals = [25, 50, 75, 100];
   for (var g = 0; g < gridVals.length; g++) {
     var gv = gridVals[g];
     var gy = padT + chartH - (gv / 100) * chartH;
     html += '<line x1="' + padL + '" y1="' + gy + '" x2="' + (W - padR) + '" y2="' + gy
-      + '" stroke="rgba(255,255,255,.04)" stroke-width="1" stroke-dasharray="3,4"/>';
-    html += '<text x="' + (padL - 4) + '" y="' + (gy + 3) + '" font-size="7" fill="rgba(255,255,255,.18)"'
+      + '" stroke="' + gridStroke + '" stroke-width="1" stroke-dasharray="3,4"/>';
+    html += '<text x="' + (padL - 4) + '" y="' + (gy + 3) + '" font-size="7" fill="' + gridLabel + '"'
       + ' text-anchor="end" font-family="Inter,sans-serif">' + gv + '</text>';
   }
 
@@ -1353,7 +1404,7 @@ function renderHealthChart(tracks, scores) {
     var tname = p.name.substring(0, 9);
     // Drop line
     html += '<line x1="' + p.x + '" y1="' + p.y + '" x2="' + p.x + '" y2="' + (padT + chartH)
-      + '" stroke="rgba(255,255,255,.06)" stroke-width="1" stroke-dasharray="2,3"/>';
+      + '" stroke="' + dropStroke + '" stroke-width="1" stroke-dasharray="2,3"/>';
     // Outer ring
     html += '<circle cx="' + p.x + '" cy="' + p.y + '" r="5" fill="' + dc + '" opacity=".2"/>';
     // Dot
@@ -1363,7 +1414,7 @@ function renderHealthChart(tracks, scores) {
     html += '<text x="' + p.x + '" y="' + (p.y - 8) + '" font-size="8" fill="' + dc
       + '" text-anchor="middle" font-family="Inter,sans-serif" font-weight="800">' + p.score + '</text>';
     // Track name at bottom
-    html += '<text x="' + p.x + '" y="' + (H - 4) + '" font-size="6.5" fill="rgba(255,255,255,.22)"'
+    html += '<text x="' + p.x + '" y="' + (H - 4) + '" font-size="6.5" fill="' + nameColor + '"'
       + ' text-anchor="middle" font-family="Inter,sans-serif">' + esc(tname) + '</text>';
   }
 
@@ -1436,8 +1487,11 @@ function renderFreqMap(adat, trackName) {
   svg += '</defs>';
 
   // Floor line
+  var ltf = isLight();
+  var floorStroke = ltf ? 'rgba(0,0,0,.14)' : 'rgba(255,255,255,.08)';
+  var bandLabelColor = ltf ? 'rgba(0,0,0,.5)' : 'rgba(255,255,255,.35)';
   svg += '<line x1="4" y1="' + baseY + '" x2="' + (W-4) + '" y2="' + baseY
-    + '" stroke="rgba(255,255,255,.08)" stroke-width="1"/>';
+    + '" stroke="' + floorStroke + '" stroke-width="1"/>';
 
   // Cylinders
   for (var i = 0; i < n; i++) {
@@ -1474,7 +1528,7 @@ function renderFreqMap(adat, trackName) {
       + '" text-anchor="middle" font-family="Inter,sans-serif" font-weight="900">' + p + '%</text>';
 
     // Band label below floor
-    svg += '<text x="' + cx + '" y="' + (H - 5) + '" font-size="7" fill="rgba(255,255,255,.35)"'
+    svg += '<text x="' + cx + '" y="' + (H - 5) + '" font-size="7" fill="' + bandLabelColor + '"'
       + ' text-anchor="middle" font-family="Inter,sans-serif" font-weight="800">' + b.label + '</text>';
   }
 
@@ -1651,6 +1705,21 @@ function toast(msg, err) {
   toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2800);
 }
 
+// ── Theme ─────────────────────────────────────────────────────────────────────
+function isLight() { return document.body.classList.contains('light'); }
+
+function toggleTheme() {
+  var nowLight = document.body.classList.toggle('light');
+  localStorage.setItem('explore_theme', nowLight ? 'light' : 'dark');
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = nowLight ? '◑' : '◐';
+  if (allTracks.length) renderHealthChart(allTracks, trackScores);
+  if (selectedTrackIdx >= 0 && allTracks[selectedTrackIdx]) {
+    var t = allTracks[selectedTrackIdx];
+    renderFreqMap(allAudioData[t.name] || {}, t.name);
+  }
+}
+
 // ── Gain Bridge slider resize ──────────────────────────────────────────────────
 function resizeGBSliders() {
   var wraps = document.querySelectorAll('.gb-slider-wrap');
@@ -1665,6 +1734,13 @@ function resizeGBSliders() {
 window.addEventListener('resize', resizeGBSliders);
 
 // ── Init ──────────────────────────────────────────────────────────────────────
+// Theme — default light
+(function() {
+  var t = localStorage.getItem('explore_theme') || 'light';
+  if (t === 'light') document.body.classList.add('light');
+  var btn = document.getElementById('theme-btn');
+  if (btn) btn.textContent = (t === 'light') ? '◑' : '◐';
+})();
 loadState();
 fetchGain();
 setInterval(fetchGain, 2000);
