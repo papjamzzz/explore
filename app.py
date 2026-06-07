@@ -1,8 +1,11 @@
-import os, time, socket, json
+import os, time, socket, json, tempfile
 from pathlib import Path
 from flask import Flask, request, jsonify, render_template_string
 from dotenv import load_dotenv
 import anthropic
+import numpy as np
+import librosa
+from collections import Counter
 
 load_dotenv()
 app = Flask(__name__)
@@ -416,6 +419,112 @@ def api_gain_set():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
+@app.route("/api/chords", methods=["POST"])
+def api_chords():
+    f = request.files.get("file")
+    if not f:
+        return jsonify({"error": "No file uploaded"}), 400
+
+    pitch_classes = ['C','C#','D','D#','E','F','F#','G','G#','A','A#','B']
+
+    # Krumhansl-Schmuckler key profiles
+    major_profile = np.array([6.35,2.23,3.48,2.33,4.38,4.09,2.52,5.19,2.39,3.66,2.29,2.88])
+    minor_profile = np.array([6.33,2.68,3.52,5.38,2.60,3.53,2.54,4.75,3.98,2.69,3.34,3.17])
+
+    def make_template(root, intervals):
+        t = np.zeros(12)
+        for iv in intervals:
+            t[(root + iv) % 12] = 1.0
+        return t / t.sum()
+
+    templates = {}
+    for i, pc in enumerate(pitch_classes):
+        templates[pc]        = make_template(i, [0,4,7])
+        templates[pc+'m']    = make_template(i, [0,3,7])
+        templates[pc+'7']    = make_template(i, [0,4,7,10])
+        templates[pc+'m7']   = make_template(i, [0,3,7,10])
+        templates[pc+'maj7'] = make_template(i, [0,4,7,11])
+        templates[pc+'sus2'] = make_template(i, [0,2,7])
+        templates[pc+'sus4'] = make_template(i, [0,5,7])
+
+    suffix = Path(f.filename).suffix or '.wav'
+    with tempfile.NamedTemporaryFile(suffix=suffix, delete=False) as tmp:
+        f.save(tmp.name)
+        tmp_path = tmp.name
+
+    try:
+        y, sr = librosa.load(tmp_path, mono=True, duration=300)
+        hop = 2048  # ~0.09s per frame at 22050Hz — good resolution without explosion
+        chroma = librosa.feature.chroma_cens(y=y, sr=sr, hop_length=hop)
+
+        # Detect key
+        chroma_mean = chroma.mean(axis=1)
+        best_key, best_mode, best_corr = 'C', 'major', -999
+        for i, pc in enumerate(pitch_classes):
+            for mode, profile in [('major', major_profile), ('minor', minor_profile)]:
+                corr = float(np.corrcoef(np.roll(profile, i), chroma_mean)[0, 1])
+                if corr > best_corr:
+                    best_corr, best_key, best_mode = corr, pc, mode
+
+        # Detect chord per frame
+        times = librosa.frames_to_time(np.arange(chroma.shape[1]), sr=sr, hop_length=hop)
+        frame_chords = []
+        for fi in range(chroma.shape[1]):
+            frame = chroma[:, fi]
+            s = frame.sum()
+            fn = frame / (s + 1e-9)
+            best_c, best_s = 'N', -1
+            for cn, tmpl in templates.items():
+                sc = float(np.dot(fn, tmpl))
+                if sc > best_s:
+                    best_s, best_c = sc, cn
+            frame_chords.append(best_c)
+
+        # Smooth with majority-vote window (~1s)
+        win = max(4, int(sr / hop))
+        smoothed = []
+        for i in range(len(frame_chords)):
+            sl = frame_chords[max(0, i-win//2): i+win//2+1]
+            smoothed.append(Counter(sl).most_common(1)[0][0])
+
+        # Segment into chord changes
+        segments, cur_chord, cur_start = [], smoothed[0], 0
+        for i, ch in enumerate(smoothed[1:], 1):
+            if ch != cur_chord:
+                dur = float(times[i-1]) - float(times[cur_start])
+                if dur >= 0.8:
+                    segments.append({"chord": cur_chord,
+                                     "start": round(float(times[cur_start]), 1),
+                                     "end":   round(float(times[i-1]), 1),
+                                     "dur":   round(dur, 1)})
+                cur_chord, cur_start = ch, i
+        dur = float(times[-1]) - float(times[cur_start])
+        if dur >= 0.8:
+            segments.append({"chord": cur_chord,
+                             "start": round(float(times[cur_start]), 1),
+                             "end":   round(float(times[-1]), 1),
+                             "dur":   round(dur, 1)})
+
+        # Unique chord list in order
+        seen, chord_list = set(), []
+        for s in segments:
+            if s['chord'] not in seen:
+                seen.add(s['chord']); chord_list.append(s['chord'])
+
+        return jsonify({
+            "key":        best_key + " " + best_mode,
+            "root":       best_key,
+            "mode":       best_mode,
+            "segments":   segments,
+            "chord_list": chord_list,
+            "duration":   round(float(times[-1]), 1)
+        })
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+    finally:
+        try: os.unlink(tmp_path)
+        except: pass
+
 @app.route("/")
 def index():
     return render_template_string(HTML)
@@ -716,6 +825,35 @@ body.light .gb-output{background:#F8FAFB;border-color:#C8D8E8;color:#1A2A3A;}
 .scan-btn{width:100%;padding:6px;border-radius:5px;background:var(--purple);border:none;color:#fff;font-size:9px;font-weight:800;letter-spacing:.1em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s;}
 .scan-btn:hover{opacity:.85;}
 .scan-btn:disabled{opacity:.35;}
+/* ── Chord ID panel ── */
+.chord-panel{flex-shrink:0;border-top:1px solid var(--border);}
+.chord-drop-zone{margin:8px 10px 0;border:1.5px dashed var(--border2);border-radius:8px;padding:12px 10px;text-align:center;cursor:pointer;transition:border-color .15s,background .15s;}
+.chord-drop-zone:hover,.chord-drop-zone.drag-over{border-color:var(--teal);background:var(--teal-dim);}
+.chord-drop-lbl{font-size:9.5px;font-weight:700;color:var(--dim);letter-spacing:.06em;}
+.chord-drop-lbl span{color:var(--teal);font-weight:800;}
+.chord-key-row{display:flex;align-items:baseline;gap:8px;padding:10px 12px 4px;}
+.chord-key-big{font-size:22px;font-weight:900;color:var(--text);letter-spacing:-.01em;}
+.chord-key-mode{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:.1em;}
+.chord-key-conf{font-size:9px;color:var(--dim2);margin-left:auto;}
+.chord-list{display:flex;flex-wrap:wrap;gap:5px;padding:4px 12px 10px;}
+.chord-chip{padding:4px 9px;border-radius:5px;font-size:11px;font-weight:800;letter-spacing:.02em;background:var(--panel2);border:1px solid var(--border2);color:var(--text);cursor:default;transition:background .12s;}
+.chord-chip.tonic{border-color:var(--teal);color:var(--teal);}
+.chord-chip:hover{background:var(--border2);}
+.chord-timeline{max-height:130px;overflow-y:auto;border-top:1px solid var(--border);margin-top:2px;}
+.chord-row{display:flex;align-items:center;gap:0;padding:4px 12px;border-bottom:1px solid var(--border);transition:background .1s;}
+.chord-row:hover{background:var(--panel2);}
+.chord-row:last-child{border-bottom:none;}
+.chord-row-name{font-size:12px;font-weight:800;color:var(--text);width:54px;flex-shrink:0;}
+.chord-row-bar{flex:1;height:4px;border-radius:2px;background:var(--teal-dim);position:relative;overflow:hidden;margin:0 8px;}
+.chord-row-fill{height:100%;border-radius:2px;background:var(--teal);opacity:.6;}
+.chord-row-time{font-size:9px;color:var(--dim2);width:38px;text-align:right;flex-shrink:0;font-variant-numeric:tabular-nums;}
+.chord-processing{padding:14px 12px;font-size:10px;color:var(--dim);text-align:center;}
+/* Light mode */
+body.light .chord-chip{background:#F4F7FB;border-color:#C0D0E0;color:#1A2A3A;}
+body.light .chord-chip.tonic{border-color:var(--teal);color:var(--teal);}
+body.light .chord-key-big{color:#0E1422;}
+body.light .chord-row-name{color:#0E1422;font-size:13px;}
+body.light .chord-drop-lbl{font-size:11px;}
 
 /* Misc */
 ::-webkit-scrollbar{width:3px;}
@@ -1000,6 +1138,32 @@ body.light .gb-output{background:#F8FAFB;border-color:#C8D8E8;color:#1A2A3A;}
     <!-- Track inspector -->
     <div class="inspector" id="inspector">
       <div class="inspector-empty">Click a track to inspect devices &amp; parameters</div>
+    </div>
+
+    <!-- Chord ID panel -->
+    <div class="chord-panel" id="chord-panel">
+      <div class="panel-hdr">
+        Chord ID
+        <span style="font-size:8px;color:var(--dim2);font-weight:500;letter-spacing:.04em">drop a stem</span>
+      </div>
+      <input type="file" id="chord-file-input" accept="audio/*" style="display:none" onchange="runChordID(this.files[0])">
+      <div class="chord-drop-zone" id="chord-drop-zone"
+           onclick="document.getElementById('chord-file-input').click()"
+           ondragover="event.preventDefault();this.classList.add('drag-over')"
+           ondragleave="this.classList.remove('drag-over')"
+           ondrop="event.preventDefault();this.classList.remove('drag-over');runChordID(event.dataTransfer.files[0])">
+        <div class="chord-drop-lbl">↑ Upload or drag a stem · <span>click to browse</span></div>
+      </div>
+      <div id="chord-results" style="display:none">
+        <div class="chord-key-row">
+          <div class="chord-key-big" id="chord-key-big">—</div>
+          <div class="chord-key-mode" id="chord-key-mode"></div>
+          <div class="chord-key-conf" id="chord-key-conf"></div>
+        </div>
+        <div class="chord-list" id="chord-list"></div>
+        <div class="chord-timeline" id="chord-timeline"></div>
+      </div>
+      <div class="chord-processing" id="chord-processing" style="display:none">Analyzing… this takes ~10s</div>
     </div>
 
     <!-- Scan box -->
@@ -1869,6 +2033,69 @@ function resizeGBSliders() {
   });
 }
 window.addEventListener('resize', resizeGBSliders);
+
+// ── Chord ID ──────────────────────────────────────────────────────────────────
+async function runChordID(file) {
+  if (!file) return;
+  var proc  = document.getElementById('chord-processing');
+  var res   = document.getElementById('chord-results');
+  var drop  = document.getElementById('chord-drop-zone');
+  proc.style.display = 'block';
+  res.style.display  = 'none';
+  drop.querySelector('.chord-drop-lbl').textContent = '⏳ ' + file.name;
+
+  var fd = new FormData();
+  fd.append('file', file);
+
+  try {
+    var r = await fetch('/api/chords', {method:'POST', body: fd});
+    var d = await r.json();
+    proc.style.display = 'none';
+
+    if (d.error) {
+      drop.querySelector('.chord-drop-lbl').innerHTML = '⚠ ' + d.error + ' · <span>try again</span>';
+      return;
+    }
+
+    // Key display
+    document.getElementById('chord-key-big').textContent  = d.root || '—';
+    document.getElementById('chord-key-mode').textContent = d.mode || '';
+    document.getElementById('chord-key-conf').textContent = d.duration ? d.duration + 's' : '';
+
+    // Chord chips (unique chords, tonic highlighted)
+    var listEl = document.getElementById('chord-list');
+    listEl.innerHTML = '';
+    (d.chord_list || []).forEach(function(ch) {
+      var chip = document.createElement('div');
+      chip.className = 'chord-chip' + (ch === d.root || ch === d.root+'m' ? ' tonic' : '');
+      chip.textContent = ch;
+      listEl.appendChild(chip);
+    });
+
+    // Timeline
+    var tl = document.getElementById('chord-timeline');
+    tl.innerHTML = '';
+    var maxDur = Math.max.apply(null, (d.segments||[]).map(function(s){return s.dur;}));
+    (d.segments || []).forEach(function(seg) {
+      var row = document.createElement('div');
+      row.className = 'chord-row';
+      var pct = maxDur > 0 ? Math.round(seg.dur / maxDur * 100) : 0;
+      row.innerHTML =
+        '<div class="chord-row-name">' + seg.chord + '</div>' +
+        '<div class="chord-row-bar"><div class="chord-row-fill" style="width:' + pct + '%"></div></div>' +
+        '<div class="chord-row-time">' + seg.start + 's</div>';
+      tl.appendChild(row);
+    });
+
+    res.style.display = 'block';
+    drop.querySelector('.chord-drop-lbl').innerHTML = '✓ ' + file.name + ' · <span>upload another</span>';
+    toast('Chord ID complete — ' + (d.chord_list||[]).length + ' chords in ' + d.key);
+  } catch(e) {
+    proc.style.display = 'none';
+    drop.querySelector('.chord-drop-lbl').innerHTML = '⚠ Error · <span>try again</span>';
+    toast('Chord ID failed: ' + e.message, true);
+  }
+}
 
 // ── Init ──────────────────────────────────────────────────────────────────────
 // Theme — default light
