@@ -544,6 +544,7 @@ body{background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-s
 
   <div class="hdr-right">
     <button class="pill primary" onclick="runScan()">⟳ Scan</button>
+    <button class="pill" onclick="clearChat()" title="Clear chat history">✕ Chat</button>
     <button class="pill" onclick="quickPrompt('Why does this mix sound muddy?')">Mud?</button>
     <button class="pill" onclick="quickPrompt('What is taking up the most space in the mix?')">Space?</button>
     <button class="pill" onclick="quickPrompt('What should I work on first?')">Priority?</button>
@@ -621,6 +622,66 @@ var trackScores = {};
 var overallHealth = 0;
 var selectedTrackIdx = -1;
 
+// ── Persistence ───────────────────────────────────────────────────────────────
+var chatHistory = [];
+var STORAGE_KEY = 'explore_v1';
+
+function saveState() {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify({
+      projectPath:   document.getElementById('project-path').value,
+      chatHistory:   chatHistory.slice(-60),
+      sessionCtx:    sessionCtx,
+      problemCtx:    problemCtx,
+      trackScores:   trackScores,
+      overallHealth: overallHealth,
+      allTracks:     allTracks,
+    }));
+  } catch(e) {}
+}
+
+function loadState() {
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return;
+    var d = JSON.parse(raw);
+    if (d.projectPath) document.getElementById('project-path').value = d.projectPath;
+    // Restore session state so quick buttons work immediately
+    if (d.sessionCtx)    sessionCtx    = d.sessionCtx;
+    if (d.problemCtx)    problemCtx    = d.problemCtx;
+    if (d.trackScores)   trackScores   = d.trackScores;
+    if (d.overallHealth) overallHealth = d.overallHealth;
+    if (d.allTracks)     allTracks     = d.allTracks;
+    // Restore UI from cached scan
+    if (d.allTracks && d.allTracks.length) {
+      renderTracks(d.allTracks);
+      document.getElementById('ableton-dot').classList.add('on');
+    }
+    if (d.overallHealth) renderOverallHealth(d.overallHealth, d.allTracks || [], []);
+    // Restore chat
+    if (d.chatHistory && d.chatHistory.length) {
+      chatHistory = d.chatHistory;
+      var area = document.getElementById('chat-area');
+      area.innerHTML = '';
+      chatHistory.forEach(function(m) {
+        var div = document.createElement('div');
+        div.className = 'msg ' + m.role;
+        div.innerHTML = '<div class="msg-bubble">' + renderText(m.text) + '</div>'
+          + '<div class="msg-meta">' + esc(m.meta || '') + '</div>';
+        area.appendChild(div);
+      });
+      scrollChat();
+    }
+  } catch(e) {}
+}
+
+function clearChat() {
+  chatHistory = [];
+  var area = document.getElementById('chat-area');
+  area.innerHTML = '<div class="msg ai"><div class="msg-bubble">Chat cleared. Session data is still loaded — ask me anything.</div></div>';
+  saveState();
+}
+
 // ── Helpers ────────────────────────────────────────────────────────────────────
 function healthColor(score) {
   if (score >= 80) return 'var(--green)';
@@ -682,6 +743,7 @@ async function runScan() {
     renderOverallHealth(overallHealth, allTracks, d.problems || []);
     renderTracks(allTracks);
     renderProblems(d.problems || []);
+    saveState();
     toast('Loaded ' + allTracks.length + ' tracks');
   } catch(e) {
     document.getElementById('ableton-dot').classList.remove('on');
@@ -960,6 +1022,7 @@ async function sendMessage() {
     await ensureScanned();
   }
   input.value = '';
+  chatHistory.push({role: 'user', text: prompt, meta: ''});
   addMessage('user', prompt);
   var btn = document.getElementById('send-btn');
   btn.disabled = true;
@@ -972,8 +1035,12 @@ async function sendMessage() {
     });
     var d = await r.json();
     var bubble = thinking.querySelector('.msg-bubble');
-    bubble.innerHTML = renderText(d.text || 'No response.');
-    thinking.querySelector('.msg-meta').textContent = (d.tokens || '') + ' tok';
+    var aiText = d.text || 'No response.';
+    var aiMeta = (d.tokens || '') + ' tok';
+    bubble.innerHTML = renderText(aiText);
+    thinking.querySelector('.msg-meta').textContent = aiMeta;
+    chatHistory.push({role: 'ai', text: aiText, meta: aiMeta});
+    saveState();
   } catch(e) {
     thinking.querySelector('.msg-bubble').textContent = 'Error connecting to server.';
   }
@@ -1011,6 +1078,8 @@ document.getElementById('chat-input').addEventListener('keydown', function(e) {
   if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
 });
 
+document.getElementById('project-path').addEventListener('change', saveState);
+
 // ── Toast ──────────────────────────────────────────────────────────────────────
 var toastTimer;
 function toast(msg, err) {
@@ -1022,6 +1091,9 @@ function toast(msg, err) {
   clearTimeout(toastTimer);
   toastTimer = setTimeout(function() { el.classList.remove('show'); }, 2800);
 }
+
+// ── Init ──────────────────────────────────────────────────────────────────────
+loadState();
 
 // ── Auto-scan on load ─────────────────────────────────────────────────────────
 var scanPromise = null;
