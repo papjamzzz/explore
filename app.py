@@ -918,7 +918,7 @@ function renderGain(g) {
 
 async function fetchGain() {
   try {
-    var r = await fetch('/api/gain');
+    var r = await fetch('/api/gain', {cache: 'no-store'});
     var d = await r.json();
     renderGain(d);
   } catch(e) {}
@@ -951,6 +951,20 @@ async function runScan() {
     trackScores   = d.track_scores || {};
     overallHealth = d.overall_health || 0;
 
+    if (!allTracks.length) {
+      document.getElementById('ableton-dot').classList.remove('on');
+      document.getElementById('track-list').innerHTML =
+        '<div style="padding:14px 10px;font-size:10px;color:var(--dim);line-height:1.6">'
+        + '<div style="font-weight:800;color:var(--orange);margin-bottom:6px">⚠ Ableton Not Connected</div>'
+        + 'Make sure:<br>'
+        + '1. Ableton is open<br>'
+        + '2. AbletonMCP is enabled in Ableton → Settings → MIDI<br>'
+        + '3. The AbletonMCP server script is running'
+        + '</div>';
+      toast('No tracks — is AbletonMCP running?', true);
+      return;
+    }
+    document.getElementById('ableton-dot').classList.add('on');
     renderOverallHealth(overallHealth, allTracks, d.problems || []);
     updateStatCards(d.session, allTracks, overallHealth);
     renderTracks(allTracks);
