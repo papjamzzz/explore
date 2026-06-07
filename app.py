@@ -358,6 +358,45 @@ def api_state_post():
     save_server_state(state)
     return jsonify({"ok": True})
 
+@app.route("/api/gain/run", methods=["POST"])
+def api_gain_run():
+    d = request.get_json() or {}
+    task = (d.get("task") or "").strip()
+    if not task:
+        return jsonify({"error": "No task provided"}), 400
+    state_path = Path.home() / ".streamfader" / "state.json"
+    try:
+        state = {}
+        if state_path.exists():
+            state = json.loads(state_path.read_text())
+        mode      = state.get("mode", "")
+        intensity = float(state.get("intensity", 0.5))
+        room      = float(state.get("room", 0.5))
+        t1_on     = state.get("t1_on", True)
+        if not t1_on:
+            return jsonify({"output": "[Track 1 is muted — unmute to run]", "mode": mode})
+        if mode == "BUILD":
+            system = ("BUILD mode: execute immediately. One approach only, no alternatives. "
+                      "Intensity " + str(round(intensity, 2)) + ". Verbosity " + str(round(room, 2)) + ". "
+                      "No preamble. Start doing it.")
+        elif mode == "EXPLORE":
+            system = ("EXPLORE mode: think broadly, surface multiple angles and tradeoffs, ask open questions. "
+                      "Intensity " + str(round(intensity, 2)) + ". Verbosity " + str(round(room, 2)) + ". "
+                      "Be thorough.")
+        else:
+            system = ("Helpful AI assistant. "
+                      "Intensity " + str(round(intensity, 2)) + ". Verbosity " + str(round(room, 2)) + ".")
+        client = anthropic.Anthropic()
+        resp = client.messages.create(
+            model="claude-sonnet-4-5",
+            max_tokens=int(150 + room * 900),
+            system=system,
+            messages=[{"role": "user", "content": task}]
+        )
+        return jsonify({"output": resp.content[0].text, "mode": mode})
+    except Exception as e:
+        return jsonify({"error": str(e)}), 500
+
 @app.route("/api/gain/set", methods=["POST"])
 def api_gain_set():
     d = request.get_json() or {}
@@ -574,6 +613,22 @@ input[type=range].gb-slider.verbosity::-moz-range-thumb{width:12px;height:60px;b
 .gb-btn.explore.active{background:var(--teal);color:#000;font-weight:900;box-shadow:0 0 16px rgba(0,168,152,.6);}
 .gb-btn.mute{background:transparent;color:var(--dim2);border:1px solid rgba(22,46,64,.7);font-size:8.5px;padding:6px 0;}
 .gb-btn.mute.active{background:rgba(200,64,48,.12);color:var(--red);border-color:rgba(200,64,48,.45);}
+/* Prompt + output */
+.gb-prompt-area{display:flex;flex-direction:column;gap:5px;padding:7px 7px 8px;border-top:1px solid var(--border);flex-shrink:0;}
+.gb-prompt{width:100%;box-sizing:border-box;background:#050D1A;border:1px solid rgba(22,46,64,.9);border-radius:6px;color:var(--text);font-size:10.5px;font-family:'Inter',system-ui,sans-serif;line-height:1.4;padding:7px 8px;resize:none;outline:none;min-height:52px;max-height:100px;}
+.gb-prompt:focus{border-color:rgba(0,168,152,.45);box-shadow:0 0 0 2px rgba(0,168,152,.08);}
+.gb-prompt::placeholder{color:var(--dim2);}
+.gb-run-btn{width:100%;padding:9px 0;font-size:9px;font-weight:900;letter-spacing:.12em;text-transform:uppercase;border:none;border-radius:6px;cursor:pointer;font-family:'Inter',system-ui,sans-serif;background:linear-gradient(135deg,#0E2235 0%,#132D46 100%);color:#4A90A4;transition:background .15s,box-shadow .15s;}
+.gb-run-btn:hover:not(:disabled){background:linear-gradient(135deg,#1A3A58 0%,#1C4060 100%);color:var(--teal);box-shadow:0 0 12px rgba(0,168,152,.3);}
+.gb-run-btn:disabled{opacity:.45;cursor:not-allowed;}
+.gb-output{display:none;background:#040B14;border:1px solid rgba(22,46,64,.8);border-radius:6px;padding:7px 8px;font-size:10px;line-height:1.5;color:var(--text);white-space:pre-wrap;word-break:break-word;max-height:160px;overflow-y:auto;}
+/* Light mode overrides — prompt area */
+body.light .gb-prompt{background:#F4F7FB;border-color:#C8D8E8;color:#1A2A3A;}
+body.light .gb-prompt:focus{border-color:#009888;box-shadow:0 0 0 2px rgba(0,152,136,.08);}
+body.light .gb-prompt::placeholder{color:#8BA0B0;}
+body.light .gb-run-btn{background:linear-gradient(135deg,#E0EEF8 0%,#D4E8F4 100%);color:#2A6080;}
+body.light .gb-run-btn:hover:not(:disabled){background:linear-gradient(135deg,#C8E4F4 0%,#B8D8EC 100%);color:#007868;box-shadow:0 0 10px rgba(0,152,136,.2);}
+body.light .gb-output{background:#F8FAFB;border-color:#C8D8E8;color:#1A2A3A;}
 
 /* ── Right panel ── */
 .right{width:262px;display:flex;flex-direction:column;flex-shrink:0;overflow:hidden;}
@@ -736,6 +791,11 @@ input[type=range].gb-slider.verbosity::-moz-range-thumb{width:12px;height:60px;b
       <button class="gb-btn build"   id="gb-build-btn"   onclick="gbMode('BUILD')">BUILD</button>
       <button class="gb-btn explore" id="gb-explore-btn" onclick="gbMode('EXPLORE')">EXPLORE</button>
       <button class="gb-btn mute"    id="gb-mute-btn"    onclick="gbMute()">MUTE</button>
+    </div>
+    <div class="gb-prompt-area">
+      <textarea class="gb-prompt" id="gb-prompt" rows="3" placeholder="Describe a task…"></textarea>
+      <button class="gb-run-btn" id="gb-run-btn" onclick="gbRun()">RUN</button>
+      <div class="gb-output" id="gb-output"></div>
     </div>
   </div>
 
@@ -1150,6 +1210,40 @@ function gbMute() {
   var btn = document.getElementById('gb-mute-btn');
   if (btn) btn.classList.toggle('active', _gbMuted);
   gbPost({t1_on: !_gbMuted});
+}
+
+async function gbRun() {
+  var promptEl = document.getElementById('gb-prompt');
+  var btn      = document.getElementById('gb-run-btn');
+  var out      = document.getElementById('gb-output');
+  var task = (promptEl.value || '').trim();
+  if (!task) return;
+  btn.disabled = true; btn.textContent = '···';
+  out.style.display = 'block';
+  out.textContent = 'Running…';
+  try {
+    var r = await fetch('/api/gain/run', {
+      method: 'POST',
+      headers: {'Content-Type':'application/json'},
+      body: JSON.stringify({task: task})
+    });
+    var d = await r.json();
+    if (d.error) {
+      out.textContent = '⚠ ' + d.error;
+    } else {
+      out.textContent = d.output || '';
+      // Flash mode badge if response included mode
+      if (d.mode) {
+        var modeHint = document.createElement('div');
+        modeHint.style.cssText = 'font-size:8px;opacity:.5;margin-top:4px;letter-spacing:.08em;text-transform:uppercase;';
+        modeHint.textContent = '— ' + d.mode + ' mode';
+        out.appendChild(modeHint);
+      }
+    }
+  } catch(e) {
+    out.textContent = '⚠ ' + e.message;
+  }
+  btn.disabled = false; btn.textContent = 'RUN';
 }
 
 function gbSyncFromGain(g) {
