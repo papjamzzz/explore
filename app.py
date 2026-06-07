@@ -6,7 +6,28 @@ import anthropic
 
 load_dotenv()
 app = Flask(__name__)
-PORT = int(os.getenv("PORT", 5572))
+PORT     = int(os.getenv("PORT", 5572))
+DATA_FILE = Path(__file__).parent / "data" / "state.json"
+
+# ── Server-side persistence ────────────────────────────────────────────────────
+
+def load_server_state():
+    try:
+        if DATA_FILE.exists():
+            return json.loads(DATA_FILE.read_text())
+    except Exception:
+        pass
+    return {}
+
+def save_server_state(data):
+    try:
+        DATA_FILE.parent.mkdir(parents=True, exist_ok=True)
+        # Trim chat to last 500 messages
+        if "chat_history" in data:
+            data["chat_history"] = data["chat_history"][-500:]
+        DATA_FILE.write_text(json.dumps(data, indent=2))
+    except Exception:
+        pass
 
 ABLETON_HOST = "127.0.0.1"
 ABLETON_PORT = 9877
@@ -323,6 +344,19 @@ def api_fix():
     if not action:
         return jsonify({"error": "No action"}), 400
     return jsonify(ableton_send(action, d.get("params", {})))
+
+@app.route("/api/state", methods=["GET"])
+def api_state_get():
+    return jsonify(load_server_state())
+
+@app.route("/api/state", methods=["POST"])
+def api_state_post():
+    d = request.get_json() or {}
+    state = load_server_state()
+    state.update(d)
+    state["saved_at"] = time.strftime("%Y-%m-%d %H:%M:%S")
+    save_server_state(state)
+    return jsonify({"ok": True})
 
 @app.route("/")
 def index():
@@ -770,25 +804,21 @@ var gainData = {};
 var chatHistory = [];
 var STORAGE_KEY = 'explore_v1';
 
-function saveState() {
-  try {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify({
-      projectPath:   document.getElementById('project-path').value,
-      chatHistory:   chatHistory.slice(-60),
-      sessionCtx:    sessionCtx,
-      problemCtx:    problemCtx,
-      trackScores:   trackScores,
-      overallHealth: overallHealth,
-      allTracks:     allTracks,
-    }));
-  } catch(e) {}
+function buildStateObj() {
+  return {
+    projectPath:   document.getElementById('project-path').value,
+    chatHistory:   chatHistory.slice(-500),
+    sessionCtx:    sessionCtx,
+    problemCtx:    problemCtx,
+    trackScores:   trackScores,
+    overallHealth: overallHealth,
+    allTracks:     allTracks,
+  };
 }
 
-function loadState() {
+function applyState(d) {
+  if (!d) return;
   try {
-    var raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return;
-    var d = JSON.parse(raw);
     if (d.projectPath) document.getElementById('project-path').value = d.projectPath;
     if (d.sessionCtx)    sessionCtx    = d.sessionCtx;
     if (d.problemCtx)    problemCtx    = d.problemCtx;
@@ -818,6 +848,39 @@ function loadState() {
       scrollChat();
     }
   } catch(e) {}
+}
+
+// Write to server file (durable) + localStorage (instant cache)
+function saveState() {
+  var obj = buildStateObj();
+  // localStorage: instant
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(obj)); } catch(e) {}
+  // Server file: durable
+  fetch('/api/state', {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify(obj)
+  }).catch(function() {});
+}
+
+// Load: try localStorage first (instant paint), then server (truth)
+function loadState() {
+  // 1. Instant render from localStorage cache
+  try {
+    var raw = localStorage.getItem(STORAGE_KEY);
+    if (raw) applyState(JSON.parse(raw));
+  } catch(e) {}
+
+  // 2. Authoritative load from server file (may have data from other browsers/sessions)
+  fetch('/api/state', {cache: 'no-store'})
+    .then(function(r) { return r.json(); })
+    .then(function(d) {
+      if (!d || d.error) return;
+      applyState(d);
+      // Sync localStorage with server truth
+      try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {}
+    })
+    .catch(function() {});
 }
 
 function clearChat() {
