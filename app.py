@@ -1293,7 +1293,7 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function renderText(s) {
-  return esc(s).replace(/\n/g,'<br>');
+  return esc(s).replace(/\\n/g,'<br>');
 }
 function pct(v) { return Math.round((v||0) * 100) + '%'; }
 
@@ -1982,7 +1982,7 @@ async function loadArrangement() {
     var r = await fetch('/api/arrangement');
     var d = await r.json();
     if (d.error) { toast('Arrangement: ' + d.error, true); return; }
-    addMessage('ai', 'Arrangement info:\n\n' + JSON.stringify(d, null, 2).substring(0, 600));
+    addMessage('ai', 'Arrangement info:\\n\\n' + JSON.stringify(d, null, 2).substring(0, 600));
     toast('Arrangement loaded');
   } catch(e) { toast('Could not load arrangement', true); }
 }
