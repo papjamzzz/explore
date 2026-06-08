@@ -527,7 +527,10 @@ def api_chords():
 
 @app.route("/")
 def index():
-    return render_template_string(HTML)
+    from flask import Response
+    resp = Response(HTML, mimetype='text/html; charset=utf-8')
+    resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    return resp
 
 # ── UI ─────────────────────────────────────────────────────────────────────────
 
@@ -1988,10 +1991,14 @@ async function loadArrangement() {
 }
 
 // ── Input ─────────────────────────────────────────────────────────────────────
-document.getElementById('chat-input').addEventListener('keydown', function(e) {
-  if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
-});
-document.getElementById('project-path').addEventListener('change', saveState);
+(function() {
+  var ci = document.getElementById('chat-input');
+  if (ci) ci.addEventListener('keydown', function(e) {
+    if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMessage(); }
+  });
+  var pp = document.getElementById('project-path');
+  if (pp) pp.addEventListener('change', saveState);
+})();
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
 var toastTimer;
