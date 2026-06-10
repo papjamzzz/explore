@@ -653,7 +653,7 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .bk-wrap{position:relative;width:360px;height:360px;flex-shrink:0;}
 .bk-svg{position:absolute;inset:0;width:100%;height:100%;}
 .bk-face-outer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.bk-face-shell{position:relative;width:176px;height:176px;border-radius:50%;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:all;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 50%,#060E18 100%);box-shadow:0 4px 16px rgba(0,0,0,.7),inset 0 2px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.5);}
+.bk-face-shell{position:relative;width:176px;height:176px;border-radius:50%;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:auto;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 50%,#060E18 100%);box-shadow:0 4px 16px rgba(0,0,0,.7),inset 0 2px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.5);}
 .bk-knurl{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.022) 0deg,transparent 2deg,transparent 12deg,rgba(255,255,255,.022) 14deg);}
 .bk-inner-face{position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#1E2E3E 0%,#080F18 60%,#040A10 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.04),inset 0 1px 4px rgba(0,0,0,.8);}
 .bk-ptr{position:absolute;left:50%;top:50%;width:4px;height:58px;margin-left:-2px;margin-top:-58px;transform-origin:bottom center;transform:rotate(-135deg);border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(0,200,188,.45),#00C8BE);transition:transform .22s cubic-bezier(.4,0,.2,1);}
@@ -1240,40 +1240,38 @@ body.light .chord-drop-lbl{font-size:11px;}
         <path id="bk-arc-fill" fill="none" stroke="#00C8BE" stroke-width="7" stroke-linecap="round" filter="url(#bk-glow)"/>
         <!-- Tick marks (JS-updated) -->
         <g id="bk-marks"></g>
-        <!-- LED position dots on arc ring -->
-        <circle class="bk-dot" id="bk-dot-0" cx="86.0"  cy="274.0" onclick="knobJump(0)"/>
-        <circle class="bk-dot" id="bk-dot-1" cx="47.7"  cy="193.9" onclick="knobJump(1)"/>
-        <circle class="bk-dot" id="bk-dot-2" cx="67.2"  cy="109.5" onclick="knobJump(2)"/>
-        <circle class="bk-dot" id="bk-dot-3" cx="136.7" cy="54.3"  onclick="knobJump(3)"/>
-        <circle class="bk-dot" id="bk-dot-4" cx="223.3" cy="54.3"  onclick="knobJump(4)"/>
-        <circle class="bk-dot" id="bk-dot-5" cx="292.8" cy="109.5" onclick="knobJump(5)"/>
-        <circle class="bk-dot" id="bk-dot-6" cx="312.3" cy="193.9" onclick="knobJump(6)"/>
-        <circle class="bk-dot" id="bk-dot-7" cx="274.0" cy="274.0" onclick="knobJump(7)"/>
-        <!-- Invisible hit targets (click to jump to that mode) -->
-        <circle class="bk-hit" cx="73.9"  cy="287.1" r="22" onclick="knobJump(0)"/>
-        <circle class="bk-hit" cx="30.8"  cy="196.7" r="22" onclick="knobJump(1)"/>
-        <circle class="bk-hit" cx="52.8"  cy="101.5" r="22" onclick="knobJump(2)"/>
-        <circle class="bk-hit" cx="131.2" cy="39.2"  r="22" onclick="knobJump(3)"/>
-        <circle class="bk-hit" cx="228.8" cy="39.2"  r="22" onclick="knobJump(4)"/>
-        <circle class="bk-hit" cx="307.2" cy="101.5" r="22" onclick="knobJump(5)"/>
-        <circle class="bk-hit" cx="329.2" cy="196.7" r="22" onclick="knobJump(6)"/>
-        <circle class="bk-hit" cx="286.1" cy="287.1" r="22" onclick="knobJump(7)"/>
-        <!-- Static mode labels — JS toggles .active class for highlight -->
-        <text id="bk-lbl-0" class="bk-lbl"  x="73.9"  y="290.6" text-anchor="middle" onclick="knobJump(0)">SCAN</text>
-        <text id="bk-lbl-1" class="bk-lbl"  x="30.8"  y="200.2" text-anchor="middle" onclick="knobJump(1)">MUD</text>
-        <text id="bk-lbl-2" class="bk-lbl"  x="52.8"  y="105.0" text-anchor="middle" onclick="knobJump(2)">VOCAL</text>
-        <text id="bk-lbl-3" class="bk-lbl"  x="131.2" y="42.7"  text-anchor="middle" onclick="knobJump(3)">SPACE</text>
-        <text id="bk-lbl-4" class="bk-lbl"  x="228.8" y="42.7"  text-anchor="middle" onclick="knobJump(4)">LOW</text>
-        <text id="bk-lbl-5" class="bk-lbl"  x="307.2" y="105.0" text-anchor="middle" onclick="knobJump(5)">DYN</text>
-        <text id="bk-lbl-6" class="bk-lbl"  x="329.2" y="200.2" text-anchor="middle" onclick="knobJump(6)">PRI</text>
-        <text id="bk-lbl-7" class="bk-lbl"  x="286.1" y="290.6" text-anchor="middle" onclick="knobJump(7)">ARR</text>
+        <!-- LED position dots on arc ring — wired via JS -->
+        <circle class="bk-dot" id="bk-dot-0" cx="86.0"  cy="274.0"/>
+        <circle class="bk-dot" id="bk-dot-1" cx="47.7"  cy="193.9"/>
+        <circle class="bk-dot" id="bk-dot-2" cx="67.2"  cy="109.5"/>
+        <circle class="bk-dot" id="bk-dot-3" cx="136.7" cy="54.3"/>
+        <circle class="bk-dot" id="bk-dot-4" cx="223.3" cy="54.3"/>
+        <circle class="bk-dot" id="bk-dot-5" cx="292.8" cy="109.5"/>
+        <circle class="bk-dot" id="bk-dot-6" cx="312.3" cy="193.9"/>
+        <circle class="bk-dot" id="bk-dot-7" cx="274.0" cy="274.0"/>
+        <!-- Invisible hit targets — wired via JS -->
+        <circle class="bk-hit" id="bk-hit-0" cx="73.9"  cy="287.1" r="22"/>
+        <circle class="bk-hit" id="bk-hit-1" cx="30.8"  cy="196.7" r="22"/>
+        <circle class="bk-hit" id="bk-hit-2" cx="52.8"  cy="101.5" r="22"/>
+        <circle class="bk-hit" id="bk-hit-3" cx="131.2" cy="39.2"  r="22"/>
+        <circle class="bk-hit" id="bk-hit-4" cx="228.8" cy="39.2"  r="22"/>
+        <circle class="bk-hit" id="bk-hit-5" cx="307.2" cy="101.5" r="22"/>
+        <circle class="bk-hit" id="bk-hit-6" cx="329.2" cy="196.7" r="22"/>
+        <circle class="bk-hit" id="bk-hit-7" cx="286.1" cy="287.1" r="22"/>
+        <!-- Static mode labels — wired via JS -->
+        <text id="bk-lbl-0" class="bk-lbl"  x="73.9"  y="290.6" text-anchor="middle">SCAN</text>
+        <text id="bk-lbl-1" class="bk-lbl"  x="30.8"  y="200.2" text-anchor="middle">MUD</text>
+        <text id="bk-lbl-2" class="bk-lbl"  x="52.8"  y="105.0" text-anchor="middle">VOCAL</text>
+        <text id="bk-lbl-3" class="bk-lbl"  x="131.2" y="42.7"  text-anchor="middle">SPACE</text>
+        <text id="bk-lbl-4" class="bk-lbl"  x="228.8" y="42.7"  text-anchor="middle">LOW</text>
+        <text id="bk-lbl-5" class="bk-lbl"  x="307.2" y="105.0" text-anchor="middle">DYN</text>
+        <text id="bk-lbl-6" class="bk-lbl"  x="329.2" y="200.2" text-anchor="middle">PRI</text>
+        <text id="bk-lbl-7" class="bk-lbl"  x="286.1" y="290.6" text-anchor="middle">ARR</text>
       </svg>
       <!-- Inner knob face (CSS — pointer rotates via JS) -->
       <div class="bk-face-outer">
         <div class="bk-face-shell" id="bk-face-shell"
-             onclick="knobClick(event)"
-             oncontextmenu="knobAdvance(-1);event.preventDefault()"
-             title="Left: back · Right: forward · Scroll: scroll modes">
+             title="Click left half: back · Click right half: forward · Scroll: change mode">
           <div class="bk-knurl"></div>
           <div class="bk-inner-face">
             <div class="bk-ptr" id="bk-ptr"></div>
@@ -2276,13 +2274,36 @@ async function loadArrangement() {
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowDown') { e.preventDefault(); knobAdvance(-1); }
     if (e.key === 'Enter') { e.preventDefault(); knobRun(); }
   });
-  // Scroll wheel on knob shell
+  // Wire knob face shell — click left half = back, right half = forward
   var shell = document.getElementById('bk-face-shell');
   if (shell) {
+    shell.addEventListener('click', function(e) {
+      var rect = shell.getBoundingClientRect();
+      var cx = rect.left + rect.width / 2;
+      knobAdvance(e.clientX >= cx ? 1 : -1);
+    });
+    shell.addEventListener('contextmenu', function(e) {
+      e.preventDefault();
+      knobAdvance(-1);
+    });
     shell.addEventListener('wheel', function(e) {
       e.preventDefault();
       knobAdvance(e.deltaY > 0 ? 1 : -1);
     }, {passive: false});
+  }
+  // Wire RUN button
+  var runBtn = document.getElementById('knob-run-btn');
+  if (runBtn) runBtn.addEventListener('click', knobRun);
+  // Wire SVG hit targets + labels + dots
+  for (var _i = 0; _i < 8; _i++) {
+    (function(idx) {
+      var hit = document.getElementById('bk-hit-' + idx);
+      var lbl = document.getElementById('bk-lbl-' + idx);
+      var dot = document.getElementById('bk-dot-' + idx);
+      if (hit) hit.addEventListener('click', function() { knobJump(idx); });
+      if (lbl) lbl.addEventListener('click', function() { knobJump(idx); });
+      if (dot) dot.addEventListener('click', function() { knobJump(idx); });
+    })(_i);
   }
 })();
 
