@@ -603,8 +603,10 @@ body.light .msg-bubble{font-size:12px;color:var(--text);}
 body.light .chat-input{font-size:12px;color:var(--text);}
 body.light .hdr-health-sub{font-size:9px;color:var(--dim);}
 body.light .brand-sub{font-size:9px;color:var(--dim);}
-body.light .scan-knob-mode{color:var(--teal2);}
+body.light .bk-mode-name{color:var(--teal2);}
 body.light .scan-run-btn{background:var(--teal2);}
+body.light .bk-station{background:var(--panel);}
+body.light .bottom-bar{background:var(--bg);}
 body.light .scan-label{font-size:10px;color:var(--dim);}
 body.light .th-meta{font-size:10px;color:var(--dim);}
 body.light .th-score-lbl{font-size:9px;color:var(--dim);}
@@ -632,7 +634,7 @@ body.light .gb-btn.mute{border-color:#C0CADF;color:#8898B8;}
 body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50%,#C8D4E8 0%,transparent 100%);}
 
 /* ── Header ── */
-.hdr{display:flex;align-items:center;gap:12px;padding:0 20px;height:120px;border-bottom:1px solid var(--border);background:rgba(7,5,15,.97);flex-shrink:0;z-index:10;transition:background .25s;position:relative;}
+.hdr{display:flex;align-items:center;gap:12px;padding:0 20px;height:64px;border-bottom:1px solid var(--border);background:rgba(7,5,15,.97);flex-shrink:0;z-index:10;transition:background .25s;}
 .brand{font-size:15px;font-weight:900;letter-spacing:5px;color:var(--teal);}
 .brand-sub{font-size:7.5px;font-weight:700;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;margin-top:1px;}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s;}
@@ -645,35 +647,25 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:nowrap;z-index:1;}
 .theme-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:15px;padding:3px 8px;cursor:pointer;transition:all .15s;line-height:1.2;flex-shrink:0;}
 .theme-btn:hover{color:var(--text);border-color:var(--border3);}
-/* ── Scan Knob — absolutely centered in header ── */
-.scan-knob-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:16px;z-index:2;}
-/* Knob shell */
-.k-shell{position:relative;width:108px;height:108px;flex-shrink:0;cursor:pointer;user-select:none;-webkit-user-select:none;}
-/* Outer bezel ring */
-.k-bezel{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,#0F1E2E 60%,#060E18 100%);box-shadow:0 6px 28px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.04);}
-/* LED dots — injected by JS */
-.k-leds{position:absolute;inset:0;border-radius:50%;}
-/* Knob face */
-.k-face{position:absolute;inset:16px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 55%,#060E18 100%);box-shadow:0 3px 14px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.5);}
-/* Ring grooves on the face */
-.k-face::before{content:'';position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(255,255,255,.05);}
-.k-face::after{content:'';position:absolute;inset:14px;border-radius:50%;border:1px solid rgba(255,255,255,.03);}
-/* Pointer — rotates, origin at center of knob */
-.k-ptr{position:absolute;left:50%;top:50%;width:3px;height:32px;margin-left:-1.5px;margin-top:-32px;transform-origin:bottom center;transform:rotate(-135deg);border-radius:3px 3px 0 0;background:linear-gradient(to top,rgba(0,200,188,.6),#00C8BE);transition:transform .22s cubic-bezier(.4,0,.2,1);}
-/* Pointer glow tip */
-.k-ptr::after{content:'';position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#00C8BE;box-shadow:0 0 6px 2px rgba(0,200,188,.7);}
-/* Center cap */
-.k-cap{position:absolute;inset:0;margin:auto;width:12px;height:12px;border-radius:50%;background:#06101A;border:1px solid rgba(0,200,188,.2);}
-/* LED dot elements */
-.k-led{position:absolute;width:5px;height:5px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(0,180,168,.18);transition:background .15s,box-shadow .15s;}
-.k-led.on{background:#00C8BE;box-shadow:0 0 5px 2px rgba(0,200,188,.6);}
-/* Mode label + run */
-.scan-knob-info{display:flex;flex-direction:column;gap:7px;}
-.scan-knob-mode{font-size:17px;font-weight:900;letter-spacing:.05em;color:var(--teal);text-transform:uppercase;line-height:1;}
-.scan-knob-hint{font-size:7px;font-weight:600;letter-spacing:.12em;color:var(--dim2);text-transform:uppercase;}
+/* ── Bottom Bar + Big Knob (OneKnob style) ── */
+.bottom-bar{display:flex;flex-direction:row;flex-shrink:0;border-top:1px solid var(--border);background:var(--bg);overflow:hidden;}
+.bk-station{display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px 20px 12px 16px;gap:10px;flex-shrink:0;border-right:1px solid var(--border);background:var(--panel);}
+.bk-wrap{position:relative;width:360px;height:360px;flex-shrink:0;}
+.bk-svg{position:absolute;inset:0;width:100%;height:100%;}
+.bk-face-outer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
+.bk-face-shell{position:relative;width:228px;height:228px;border-radius:50%;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:all;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 50%,#060E18 100%);box-shadow:0 8px 40px rgba(0,0,0,.9),inset 0 2px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.5);}
+.bk-knurl{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.022) 0deg,transparent 2deg,transparent 12deg,rgba(255,255,255,.022) 14deg);}
+.bk-inner-face{position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#1E2E3E 0%,#080F18 60%,#040A10 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.04),inset 0 1px 4px rgba(0,0,0,.8);}
+.bk-ptr{position:absolute;left:50%;top:50%;width:4px;height:76px;margin-left:-2px;margin-top:-76px;transform-origin:bottom center;transform:rotate(-135deg);border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(0,200,188,.45),#00C8BE);transition:transform .22s cubic-bezier(.4,0,.2,1);}
+.bk-ptr::after{content:'';position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#00C8BE;box-shadow:0 0 12px 4px rgba(0,200,188,.8);}
+.bk-cap{position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1A2E40,#060E18);border:1px solid rgba(0,200,188,.3);box-shadow:0 2px 8px rgba(0,0,0,.7);}
+.bk-label-row{display:flex;align-items:center;gap:16px;}
+.bk-mode-name{font-size:18px;font-weight:900;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;}
+.bk-hint{font-size:7px;font-weight:600;letter-spacing:.14em;color:var(--dim2);text-transform:uppercase;}
 .scan-run-btn{padding:10px 22px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:11px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
 .scan-run-btn:hover{opacity:.85;}
 .scan-run-btn:active{transform:scale(.96);}
+.bottom-chat{flex:1;display:flex;flex-direction:column;padding:16px;gap:8px;justify-content:flex-end;min-width:0;overflow:hidden;}
 
 /* ── Stats strip ── */
 .stats-strip{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--panel);overflow:hidden;}
@@ -753,27 +745,27 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .gb-fader{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;padding:12px 0 5px;border-right:1px solid rgba(16,28,42,.9);overflow:hidden;}
 .gb-fader:last-child{border-right:none;}
 .gb-label{font-size:8px;font-weight:900;letter-spacing:.1em;text-transform:uppercase;margin-bottom:6px;flex-shrink:0;}
-.gb-label.effort{color:var(--teal2);}
-.gb-label.verbosity{color:#9B6FE0;}
-/* Groove background stripe behind slider */
-.gb-slider-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;position:relative;overflow:hidden;background:radial-gradient(ellipse 7px 100% at 50% 50%,#020608 0%,transparent 100%);}
+.gb-label.effort{color:#C08030;}
+.gb-label.verbosity{color:#8B5520;}
+/* Groove track background */
+.gb-slider-wrap{flex:1;min-height:0;display:flex;align-items:center;justify-content:center;width:100%;position:relative;overflow:hidden;}
 .gb-val{font-size:11px;font-weight:900;font-variant-numeric:tabular-nums;margin-top:4px;flex-shrink:0;height:15px;line-height:15px;}
-.gb-val.effort{color:var(--teal2);}
-.gb-val.verbosity{color:#9B6FE0;}
-/* Vertical slider — width set by JS to fill container height */
-input[type=range].gb-slider{-webkit-appearance:none;appearance:none;transform:rotate(-90deg);height:64px;cursor:pointer;outline:none;background:transparent;margin:0;padding:0;flex-shrink:0;}
-/* Deep grooved channel */
-input[type=range].gb-slider::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:#030810;box-shadow:inset 0 2px 6px rgba(0,0,0,.98),inset 0 -1px 2px rgba(0,0,0,.6);border:1px solid rgba(0,0,0,.8);}
-/* Thumb — wide flat hardware fader handle, colored per track */
-input[type=range].gb-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:12px;height:60px;border-radius:5px;margin-top:-26px;box-shadow:0 3px 12px rgba(0,0,0,.95),inset 0 1px 0 rgba(255,255,255,.18),inset 0 -1px 0 rgba(0,0,0,.6);}
-input[type=range].gb-slider.effort::-webkit-slider-thumb{background:linear-gradient(90deg,#0C1E30 0%,#1C3A54 22%,#224060 44%,rgba(0,200,190,.22) 50%,#224060 56%,#1C3A54 78%,#0C1E30 100%);border:1px solid #2E7090;}
-input[type=range].gb-slider.effort::-webkit-slider-thumb:hover{background:linear-gradient(90deg,#102438 0%,#224A68 22%,#2A5078 44%,rgba(0,212,200,.35) 50%,#2A5078 56%,#224A68 78%,#102438 100%);border-color:#00D4C8;box-shadow:0 0 10px rgba(0,212,200,.4),0 3px 12px rgba(0,0,0,.95);}
-input[type=range].gb-slider.verbosity::-webkit-slider-thumb{background:linear-gradient(90deg,#120A24 0%,#241640 22%,#2C1C4E 44%,rgba(155,111,224,.22) 50%,#2C1C4E 56%,#241640 78%,#120A24 100%);border:1px solid #4A2880;}
-input[type=range].gb-slider.verbosity::-webkit-slider-thumb:hover{background:linear-gradient(90deg,#180E2E 0%,#2E1E54 22%,#38245E 44%,rgba(155,111,224,.38) 50%,#38245E 56%,#2E1E54 78%,#180E2E 100%);border-color:#9B6FE0;box-shadow:0 0 10px rgba(155,111,224,.45),0 3px 12px rgba(0,0,0,.95);}
+.gb-val.effort{color:#C08030;}
+.gb-val.verbosity{color:#8B5520;}
+/* Vertical fader — rotated; JS sets width = wrapper height for full-height fill */
+input[type=range].gb-slider{-webkit-appearance:none;appearance:none;transform:rotate(-90deg);height:20px;cursor:pointer;outline:none;background:transparent;margin:0;padding:0;flex-shrink:0;}
+/* Deep wood groove channel */
+input[type=range].gb-slider::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,#1A0A04,#050C14 40%,#1A0A04);box-shadow:inset 0 3px 8px rgba(0,0,0,.98),inset 0 -1px 2px rgba(0,0,0,.6);border:1px solid rgba(0,0,0,.9);}
+/* Wood fader cap */
+input[type=range].gb-slider::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:14px;height:52px;border-radius:5px;margin-top:-22px;box-shadow:0 3px 12px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.22),inset 0 -1px 0 rgba(0,0,0,.5);}
+input[type=range].gb-slider.effort::-webkit-slider-thumb{background:linear-gradient(90deg,#2A1508 0%,#7A4520 16%,#C07828 34%,#E09840 50%,#C07828 66%,#7A4520 84%,#2A1508 100%);border:1px solid #1A0A04;}
+input[type=range].gb-slider.effort::-webkit-slider-thumb:hover{background:linear-gradient(90deg,#351A0A 0%,#9B5A28 16%,#D88A30 34%,#F0AC4A 50%,#D88A30 66%,#9B5A28 84%,#351A0A 100%);box-shadow:0 0 14px rgba(200,120,40,.5),0 3px 12px rgba(0,0,0,.9);}
+input[type=range].gb-slider.verbosity::-webkit-slider-thumb{background:linear-gradient(90deg,#1A0A04 0%,#4A2810 16%,#7B4020 34%,#9B5830 50%,#7B4020 66%,#4A2810 84%,#1A0A04 100%);border:1px solid #0A0402;}
+input[type=range].gb-slider.verbosity::-webkit-slider-thumb:hover{background:linear-gradient(90deg,#221008 0%,#5A3418 16%,#8B4F28 34%,#AB6840 50%,#8B4F28 66%,#5A3418 84%,#221008 100%);box-shadow:0 0 14px rgba(160,90,40,.5),0 3px 12px rgba(0,0,0,.9);}
 /* Firefox */
-input[type=range].gb-slider::-moz-range-track{height:8px;border-radius:4px;background:#030810;box-shadow:inset 0 2px 5px rgba(0,0,0,.95);}
-input[type=range].gb-slider.effort::-moz-range-thumb{width:12px;height:60px;border-radius:5px;background:#1C3A54;border:1px solid #2E7090;}
-input[type=range].gb-slider.verbosity::-moz-range-thumb{width:12px;height:60px;border-radius:5px;background:#241640;border:1px solid #4A2880;}
+input[type=range].gb-slider::-moz-range-track{height:8px;border-radius:4px;background:#1A0A04;box-shadow:inset 0 2px 5px rgba(0,0,0,.95);}
+input[type=range].gb-slider.effort::-moz-range-thumb{width:14px;height:52px;border-radius:5px;background:#C07828;border:1px solid #1A0A04;}
+input[type=range].gb-slider.verbosity::-moz-range-thumb{width:14px;height:52px;border-radius:5px;background:#7B4020;border:1px solid #0A0402;}
 /* Buttons — tight */
 .gb-btns{display:flex;flex-direction:column;gap:4px;padding:6px 7px 7px;flex-shrink:0;}
 .gb-btn{width:100%;padding:10px 0;font-size:9.5px;font-weight:900;letter-spacing:.1em;border-radius:6px;border:none;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .12s,background .15s,color .15s,box-shadow .15s;}
@@ -906,23 +898,6 @@ body.light .chord-drop-lbl{font-size:11px;}
       <div class="brand-sub">AI Mix Engineer</div>
     </div>
     <div id="ableton-dot" class="status-dot" title="Ableton Live"></div>
-  </div>
-
-  <!-- Center: scan knob (absolutely centered) -->
-  <div class="scan-knob-wrap">
-      <div class="k-shell" id="k-shell" onclick="knobClick(event)" oncontextmenu="knobAdvance(-1);event.preventDefault()" title="Left: next mode · Right: prev mode">
-        <div class="k-bezel"></div>
-        <div class="k-leds" id="k-leds"></div>
-        <div class="k-face">
-          <div class="k-ptr" id="k-ptr"></div>
-          <div class="k-cap"></div>
-        </div>
-      </div>
-      <div class="scan-knob-info">
-        <div class="scan-knob-mode" id="knob-mode-lbl">SCAN</div>
-        <div class="scan-knob-hint">← → or click knob</div>
-        <button class="scan-run-btn" onclick="knobRun()" id="knob-run-btn">RUN</button>
-      </div>
   </div>
 
   <!-- Right: health + theme -->
@@ -1064,11 +1039,6 @@ body.light .chord-drop-lbl{font-size:11px;}
       </div>
     </div>
 
-    <!-- Input -->
-    <div class="input-row">
-      <textarea class="chat-input" id="chat-input" placeholder="Ask about your mix..."></textarea>
-      <button class="send-btn" id="send-btn" onclick="sendMessage()">Ask</button>
-    </div>
   </div>
 
   <!-- Right panel -->
@@ -1214,6 +1184,78 @@ body.light .chord-drop-lbl{font-size:11px;}
       <input class="path-input" id="project-path" placeholder="/Users/you/Music/Project" type="text">
       <button class="scan-btn" id="scan-btn" onclick="scanAudio()">Scan Audio Files</button>
     </div>
+  </div>
+
+</div>
+
+<!-- ── Bottom Bar: Big Knob + Chat Input ──────────────────────────────────── -->
+<div class="bottom-bar">
+
+  <!-- Big OneKnob-style scan knob -->
+  <div class="bk-station">
+    <div class="bk-wrap" id="bk-wrap">
+      <svg class="bk-svg" id="bk-svg" viewBox="0 0 360 360" xmlns="http://www.w3.org/2000/svg">
+        <defs>
+          <linearGradient id="bk-wood" x1="0%" y1="0%" x2="100%" y2="100%">
+            <stop offset="0%"   stop-color="#1A0A04"/>
+            <stop offset="14%"  stop-color="#7A4B20"/>
+            <stop offset="28%"  stop-color="#B07030"/>
+            <stop offset="42%"  stop-color="#8A5422"/>
+            <stop offset="56%"  stop-color="#5C3412"/>
+            <stop offset="70%"  stop-color="#8A5422"/>
+            <stop offset="84%"  stop-color="#B07030"/>
+            <stop offset="100%" stop-color="#1A0A04"/>
+          </linearGradient>
+          <filter id="bk-glow" x="-60%" y="-60%" width="220%" height="220%">
+            <feGaussianBlur stdDeviation="3.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="bk-lbl-glow" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="1.5" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Dark base -->
+        <circle cx="180" cy="180" r="178" fill="#040810"/>
+        <!-- Walnut wood ring -->
+        <circle cx="180" cy="180" r="140" fill="none" stroke="url(#bk-wood)" stroke-width="24"/>
+        <!-- Wood ring inner shadow -->
+        <circle cx="180" cy="180" r="128" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="2"/>
+        <!-- Wood ring outer sheen -->
+        <circle cx="180" cy="180" r="152" fill="none" stroke="rgba(255,200,120,.06)" stroke-width="1"/>
+        <!-- Arc track background -->
+        <path id="bk-arc-bg" fill="none" stroke="rgba(0,160,150,.14)" stroke-width="6" stroke-linecap="round"/>
+        <!-- Arc fill (active green) -->
+        <path id="bk-arc-fill" fill="none" stroke="#00C8BE" stroke-width="6" stroke-linecap="round" filter="url(#bk-glow)"/>
+        <!-- Tick marks + mode labels — rendered by JS -->
+        <g id="bk-marks"></g>
+      </svg>
+      <!-- Inner knob face (CSS — pointer rotates via JS) -->
+      <div class="bk-face-outer">
+        <div class="bk-face-shell" id="bk-face-shell"
+             onclick="knobClick(event)"
+             oncontextmenu="knobAdvance(-1);event.preventDefault()"
+             title="Left: back · Right: forward · Scroll: scroll modes">
+          <div class="bk-knurl"></div>
+          <div class="bk-inner-face">
+            <div class="bk-ptr" id="bk-ptr"></div>
+            <div class="bk-cap"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- Mode name + RUN -->
+    <div class="bk-label-row">
+      <div class="bk-mode-name" id="knob-mode-lbl">SCAN</div>
+      <div class="bk-hint">← → scroll · click knob</div>
+      <button class="scan-run-btn" onclick="knobRun()" id="knob-run-btn">RUN</button>
+    </div>
+  </div>
+
+  <!-- Chat input (fills remaining width) -->
+  <div class="bottom-chat">
+    <textarea class="chat-input" id="chat-input" placeholder="Ask about your mix..." style="flex:1;height:auto;min-height:80px;max-height:220px;resize:none;"></textarea>
+    <button class="send-btn" id="send-btn" onclick="sendMessage()">Ask</button>
   </div>
 
 </div>
@@ -1578,23 +1620,76 @@ function knobAdvance(dir) {
 
 function drawKnob() {
   var angle = KNOB_ANGLES[knobPos];
-  var ptr = document.getElementById('k-ptr');
+  // Rotate CSS pointer on inner face
+  var ptr = document.getElementById('bk-ptr');
   if (ptr) ptr.style.transform = 'rotate(' + angle + 'deg)';
-  var ledsEl = document.getElementById('k-leds');
-  if (ledsEl) {
-    ledsEl.innerHTML = '';
-    for (var i = 0; i < KNOB_MODES.length; i++) {
-      var a = KNOB_ANGLES[i] * Math.PI / 180;
-      var r = 44;
-      var lx = 50 + r * Math.sin(a);
-      var ly = 50 - r * Math.cos(a);
-      var led = document.createElement('div');
-      led.className = 'k-led' + (i === knobPos ? ' on' : '');
-      led.style.left = lx + '%';
-      led.style.top = ly + '%';
-      ledsEl.appendChild(led);
+
+  // SVG arc helpers — center (180,180), angles measured from top, clockwise
+  function angXY(deg, r) {
+    var rad = (deg - 90) * Math.PI / 180;
+    return [180 + r * Math.cos(rad), 180 + r * Math.sin(rad)];
+  }
+  function arcPath(a1, a2, r) {
+    var p1 = angXY(a1, r);
+    var p2 = angXY(a2, r);
+    var diff = a2 - a1;
+    if (diff <= 0) diff += 360;
+    var large = diff > 180 ? 1 : 0;
+    return 'M ' + p1[0].toFixed(2) + ' ' + p1[1].toFixed(2) +
+           ' A ' + r + ' ' + r + ' 0 ' + large + ' 1 ' +
+           p2[0].toFixed(2) + ' ' + p2[1].toFixed(2);
+  }
+
+  // Full background arc (-135° to +135° = 270°)
+  var bgArc = document.getElementById('bk-arc-bg');
+  if (bgArc) bgArc.setAttribute('d', arcPath(-135, 135, 162));
+
+  // Active fill arc: from start to current
+  var fillArc = document.getElementById('bk-arc-fill');
+  if (fillArc) {
+    if (knobPos === 0) {
+      fillArc.setAttribute('d', '');  // at start, no fill
+    } else {
+      fillArc.setAttribute('d', arcPath(-135, angle, 162));
     }
   }
+
+  // Tick marks + mode labels
+  var marks = document.getElementById('bk-marks');
+  if (marks) {
+    marks.innerHTML = '';
+    var ns = 'http://www.w3.org/2000/svg';
+    var shortNames = ['SCAN','MUD','VOCAL','SPACE','LOW','DYN','PRI','ARR'];
+    for (var i = 0; i < KNOB_MODES.length; i++) {
+      var a = KNOB_ANGLES[i];
+      var active = (i === knobPos);
+      // Tick mark (between wood ring outer edge and arc)
+      var t1 = angXY(a, 154); var t2 = angXY(a, 159);
+      var tick = document.createElementNS(ns, 'line');
+      tick.setAttribute('x1', t1[0].toFixed(1)); tick.setAttribute('y1', t1[1].toFixed(1));
+      tick.setAttribute('x2', t2[0].toFixed(1)); tick.setAttribute('y2', t2[1].toFixed(1));
+      tick.setAttribute('stroke', active ? '#00C8BE' : 'rgba(200,220,230,.3)');
+      tick.setAttribute('stroke-width', active ? '2.5' : '1.5');
+      tick.setAttribute('stroke-linecap', 'round');
+      marks.appendChild(tick);
+      // Label — upright text outside the arc ring
+      var lp = angXY(a, 172);
+      var lbl = document.createElementNS(ns, 'text');
+      lbl.setAttribute('x', lp[0].toFixed(1));
+      lbl.setAttribute('y', (lp[1] + 3.5).toFixed(1));
+      lbl.setAttribute('text-anchor', 'middle');
+      lbl.setAttribute('font-size', active ? '10' : '9');
+      lbl.setAttribute('font-weight', active ? '900' : '600');
+      lbl.setAttribute('font-family', 'Inter,system-ui,sans-serif');
+      lbl.setAttribute('letter-spacing', '0.04em');
+      lbl.setAttribute('fill', active ? '#00C8BE' : 'rgba(210,225,235,.45)');
+      if (active) lbl.setAttribute('filter', 'url(#bk-lbl-glow)');
+      lbl.textContent = shortNames[i];
+      marks.appendChild(lbl);
+    }
+  }
+
+  // Mode name label
   var ml = document.getElementById('knob-mode-lbl');
   if (ml) ml.textContent = KNOB_MODES[knobPos].name;
 }
@@ -2131,6 +2226,14 @@ async function loadArrangement() {
     if (e.key === 'ArrowLeft'  || e.key === 'ArrowDown') { e.preventDefault(); knobAdvance(-1); }
     if (e.key === 'Enter') { e.preventDefault(); knobRun(); }
   });
+  // Scroll wheel on knob shell
+  var shell = document.getElementById('bk-face-shell');
+  if (shell) {
+    shell.addEventListener('wheel', function(e) {
+      e.preventDefault();
+      knobAdvance(e.deltaY > 0 ? 1 : -1);
+    }, {passive: false});
+  }
 })();
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
