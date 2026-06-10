@@ -632,7 +632,7 @@ body.light .gb-btn.mute{border-color:#C0CADF;color:#8898B8;}
 body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50%,#C8D4E8 0%,transparent 100%);}
 
 /* ── Header ── */
-.hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:88px;border-bottom:1px solid var(--border);background:rgba(7,5,15,.97);flex-shrink:0;z-index:10;transition:background .25s;}
+.hdr{display:flex;align-items:center;gap:12px;padding:0 20px;height:120px;border-bottom:1px solid var(--border);background:rgba(7,5,15,.97);flex-shrink:0;z-index:10;transition:background .25s;position:relative;}
 .brand{font-size:15px;font-weight:900;letter-spacing:5px;color:var(--teal);}
 .brand-sub{font-size:7.5px;font-weight:700;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;margin-top:1px;}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s;}
@@ -642,17 +642,18 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .hdr-health-sub{font-size:7px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:2px;}
 .hdr-health-bar{width:64px;height:3px;background:var(--border2);border-radius:2px;margin-top:3px;overflow:hidden;}
 .hdr-health-fill{height:100%;border-radius:2px;transition:width .5s;}
-.hdr-right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:nowrap;}
-.theme-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:15px;padding:3px 8px;cursor:pointer;transition:all .15s;line-height:1.2;flex-shrink:0;align-self:flex-start;margin-top:6px;}
+.hdr-right{margin-left:auto;display:flex;gap:8px;align-items:center;flex-wrap:nowrap;z-index:1;}
+.theme-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:15px;padding:3px 8px;cursor:pointer;transition:all .15s;line-height:1.2;flex-shrink:0;}
 .theme-btn:hover{color:var(--text);border-color:var(--border3);}
-/* ── Scan Knob ── */
-.scan-knob-wrap{display:flex;align-items:center;gap:10px;padding:0 0 0 14px;border-left:1px solid var(--border);}
-.scan-knob-svg{width:72px;height:72px;cursor:pointer;flex-shrink:0;filter:drop-shadow(0 3px 12px rgba(0,0,0,.7));user-select:none;-webkit-user-select:none;}
-.scan-knob-svg:active{filter:drop-shadow(0 1px 6px rgba(0,0,0,.7));}
-.scan-knob-info{display:flex;flex-direction:column;gap:6px;min-width:60px;}
-.scan-knob-mode{font-size:13px;font-weight:900;letter-spacing:.06em;color:var(--teal);text-transform:uppercase;line-height:1;}
-.scan-knob-hint{font-size:7.5px;font-weight:600;letter-spacing:.1em;color:var(--dim2);text-transform:uppercase;}
-.scan-run-btn{padding:9px 18px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:10px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
+/* ── Scan Knob — absolutely centered in header ── */
+.scan-knob-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:14px;pointer-events:none;}
+.scan-knob-svg{width:104px;height:104px;cursor:pointer;flex-shrink:0;filter:drop-shadow(0 4px 20px rgba(0,0,0,.8));user-select:none;-webkit-user-select:none;pointer-events:all;}
+.scan-knob-svg:hover{filter:drop-shadow(0 4px 24px rgba(0,200,190,.25));}
+.scan-knob-svg:active{filter:drop-shadow(0 2px 8px rgba(0,0,0,.8));}
+.scan-knob-info{display:flex;flex-direction:column;gap:7px;pointer-events:all;}
+.scan-knob-mode{font-size:17px;font-weight:900;letter-spacing:.05em;color:var(--teal);text-transform:uppercase;line-height:1;}
+.scan-knob-hint{font-size:7px;font-weight:600;letter-spacing:.12em;color:var(--dim2);text-transform:uppercase;}
+.scan-run-btn{padding:10px 22px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:11px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
 .scan-run-btn:hover{opacity:.85;}
 .scan-run-btn:active{transform:scale(.96);}
 
@@ -880,23 +881,17 @@ body.light .chord-drop-lbl{font-size:11px;}
 
 <!-- ── Header ──────────────────────────────────────────────────────── -->
 <div class="hdr">
-  <div>
-    <div class="brand">EXPLORE</div>
-    <div class="brand-sub">AI Mix Engineer</div>
-  </div>
-  <div id="ableton-dot" class="status-dot" title="Ableton Live"></div>
-
-  <div class="hdr-health" id="hdr-health" style="display:none">
+  <!-- Left: brand -->
+  <div style="display:flex;align-items:center;gap:10px;z-index:1">
     <div>
-      <div id="hdr-health-score" class="hdr-health-score">—</div>
-      <div id="hdr-health-lbl" class="hdr-health-sub">Mix Health</div>
-      <div class="hdr-health-bar"><div id="hdr-health-fill" class="hdr-health-fill" style="width:0%"></div></div>
+      <div class="brand">EXPLORE</div>
+      <div class="brand-sub">AI Mix Engineer</div>
     </div>
+    <div id="ableton-dot" class="status-dot" title="Ableton Live"></div>
   </div>
 
-  <div class="hdr-right">
-    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">◑</button>
-    <div class="scan-knob-wrap">
+  <!-- Center: scan knob (absolutely centered) -->
+  <div class="scan-knob-wrap">
       <!-- SVG hardware rotary knob — left-click advances, right-click goes back -->
       <svg class="scan-knob-svg" id="scan-knob-svg" viewBox="0 0 100 100"
         onclick="knobClick(event)" oncontextmenu="knobAdvance(-1);event.preventDefault()"
@@ -938,7 +933,18 @@ body.light .chord-drop-lbl{font-size:11px;}
         <div class="scan-knob-hint">← → or click knob</div>
         <button class="scan-run-btn" onclick="knobRun()" id="knob-run-btn">RUN</button>
       </div>
+  </div>
+
+  <!-- Right: health + theme -->
+  <div class="hdr-right">
+    <div class="hdr-health" id="hdr-health" style="display:none">
+      <div>
+        <div id="hdr-health-score" class="hdr-health-score">—</div>
+        <div id="hdr-health-lbl" class="hdr-health-sub">Mix Health</div>
+        <div class="hdr-health-bar"><div id="hdr-health-fill" class="hdr-health-fill" style="width:0%"></div></div>
+      </div>
     </div>
+    <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">◑</button>
   </div>
 </div>
 
