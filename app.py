@@ -230,7 +230,7 @@ def ask_claude(system, user):
     try:
         msg = client.messages.create(
             model="claude-sonnet-4-6",
-            max_tokens=1024,
+            max_tokens=2048,
             system=system,
             messages=[{"role": "user", "content": user}]
         )
@@ -712,7 +712,7 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .msg-bubble{padding:10px 14px;border-radius:12px;font-family:'Inter',system-ui,sans-serif;font-size:13px;font-weight:400;line-height:1.75;letter-spacing:.01em;}
 .msg.user .msg-bubble{background:rgba(0,168,152,.1);border:1px solid rgba(0,168,152,.2);color:var(--text);}
 .msg.ai .msg-bubble{background:var(--panel2);border:1px solid var(--border2);color:var(--text);}
-.msg-meta{font-size:8.5px;color:var(--dim2);padding:0 3px;font-variant-numeric:tabular-nums;}
+.msg-meta{font-size:8px;color:var(--dim2);padding:1px 3px 0;font-variant-numeric:tabular-nums;text-align:right;opacity:.5;}
 .input-row{padding:9px 12px;border-top:1px solid var(--border);display:flex;gap:6px;flex-shrink:0;background:var(--panel);}
 .chat-input{flex:1;background:var(--panel2);border:1px solid var(--border2);border-radius:8px;padding:8px 12px;color:var(--text);font-size:12px;font-family:'Inter',system-ui,sans-serif;resize:none;height:38px;line-height:1.5;transition:border-color .15s;}
 .chat-input:focus{outline:none;border-color:var(--teal);}
@@ -1188,6 +1188,8 @@ var sessionCtx = '';
 var problemCtx = '';
 var allTracks = [];
 var allAudioData = {};
+var sessionData = {};
+var currentProblems = [];
 var trackScores = {};
 var overallHealth = 0;
 var selectedTrackIdx = -1;
@@ -1206,6 +1208,8 @@ function buildStateObj() {
     trackScores:   trackScores,
     overallHealth: overallHealth,
     allTracks:     allTracks,
+    session:       sessionData,
+    problems:      currentProblems,
   };
 }
 
@@ -1215,18 +1219,21 @@ function applyState(d) {
     if (d.projectPath) document.getElementById('project-path').value = d.projectPath;
     if (d.sessionCtx)    sessionCtx    = d.sessionCtx;
     if (d.problemCtx)    problemCtx    = d.problemCtx;
-    if (d.trackScores)   trackScores   = d.trackScores;
-    if (d.overallHealth) overallHealth = d.overallHealth;
-    if (d.allTracks)     allTracks     = d.allTracks;
+    if (d.trackScores)   trackScores      = d.trackScores;
+    if (d.overallHealth) overallHealth    = d.overallHealth;
+    if (d.allTracks)     allTracks        = d.allTracks;
+    if (d.session)       sessionData      = d.session;
+    if (d.problems)      currentProblems  = d.problems;
     if (d.allTracks && d.allTracks.length) {
       renderTracks(d.allTracks);
       renderHealthChart(d.allTracks, d.trackScores || {});
       document.getElementById('ableton-dot').classList.add('on');
     }
     if (d.overallHealth) {
-      renderOverallHealth(d.overallHealth, d.allTracks || [], []);
-      updateStatCards(null, d.allTracks || [], d.overallHealth);
+      renderOverallHealth(d.overallHealth, d.allTracks || [], d.problems || []);
+      updateStatCards(d.session || null, d.allTracks || [], d.overallHealth);
     }
+    if (d.problems && d.problems.length) renderProblems(d.problems);
     if (d.chatHistory && d.chatHistory.length) {
       chatHistory = d.chatHistory;
       var area = document.getElementById('chat-area');
@@ -1298,7 +1305,24 @@ function esc(s) {
   return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
 }
 function renderText(s) {
-  return esc(s).replace(/\\n/g,'<br>');
+  var html = esc(s);
+  // Headers
+  html = html.replace(/^### (.+)$/gm, '<div style="font-weight:800;font-size:11px;letter-spacing:.06em;text-transform:uppercase;color:var(--teal);margin:10px 0 3px">$1</div>');
+  html = html.replace(/^## (.+)$/gm,  '<div style="font-weight:800;font-size:12px;color:var(--text);margin:10px 0 4px">$1</div>');
+  html = html.replace(/^# (.+)$/gm,   '<div style="font-weight:900;font-size:13px;color:var(--text);margin:10px 0 4px">$1</div>');
+  // Bold / italic
+  html = html.replace(/\*\*\*(.+?)\*\*\*/g, '<strong><em>$1</em></strong>');
+  html = html.replace(/\*\*(.+?)\*\*/g,     '<strong>$1</strong>');
+  html = html.replace(/\*(.+?)\*/g,         '<em>$1</em>');
+  // Inline code
+  html = html.replace(/`([^`]+)`/g, '<code style="background:rgba(0,168,152,.12);color:var(--teal);padding:1px 5px;border-radius:3px;font-size:11px;font-family:monospace">$1</code>');
+  // Bullet lists — convert leading "- " on a line
+  html = html.replace(/^[-•] (.+)$/gm, '<div style="display:flex;gap:6px;margin:2px 0"><span style="color:var(--teal);flex-shrink:0">·</span><span>$1</span></div>');
+  // Horizontal rules
+  html = html.replace(/^---+$/gm, '<hr style="border:none;border-top:1px solid var(--border);margin:8px 0">');
+  // Newlines
+  html = html.replace(/\\n/g, '<br>').replace(/\n/g, '<br>');
+  return html;
 }
 function pct(v) { return Math.round((v||0) * 100) + '%'; }
 
@@ -1319,7 +1343,9 @@ function updateStatCards(session, tracks, health) {
     var el = document.getElementById('stat-health');
     el.textContent = health;
     el.style.color = healthColor(health);
-    document.getElementById('stat-health-lbl').textContent = healthLabel(health);
+    var hasAudio = Object.keys(allAudioData).length > 0;
+    document.getElementById('stat-health-lbl').textContent =
+      healthLabel(health) + (hasAudio ? '' : ' · no audio');
   }
 }
 
@@ -1507,12 +1533,14 @@ async function runScan() {
     });
     var d = await r.json();
     document.getElementById('ableton-dot').classList.add('on');
-    sessionCtx    = d.session_ctx || '';
-    problemCtx    = d.problem_ctx || '';
-    allTracks     = d.tracks || [];
-    allAudioData  = d.audio_data || {};
-    trackScores   = d.track_scores || {};
-    overallHealth = d.overall_health || 0;
+    sessionCtx      = d.session_ctx || '';
+    problemCtx      = d.problem_ctx || '';
+    allTracks       = d.tracks || [];
+    allAudioData    = d.audio_data || {};
+    trackScores     = d.track_scores || {};
+    overallHealth   = d.overall_health || 0;
+    sessionData     = d.session || {};
+    currentProblems = d.problems || [];
 
     if (!allTracks.length) {
       document.getElementById('ableton-dot').classList.remove('on');
@@ -1573,7 +1601,8 @@ function renderTracks(tracks) {
   var html = '';
   for (var i = 0; i < tracks.length; i++) {
     var t = tracks[i];
-    var name = t.name || ('Track ' + (i+1));
+    if (!t || !t.name) continue;
+    var name = t.name;
     var badge = t.is_midi_track
       ? '<span class="track-type type-midi">M</span>'
       : '<span class="track-type type-audio">A</span>';
@@ -1941,7 +1970,7 @@ async function sendMessage() {
     });
     var d = await r.json();
     var aiText = d.text || 'No response.';
-    var aiMeta = (d.tokens||'') + ' tok';
+    var aiMeta = d.tokens ? d.tokens + ' tok' : '';
     thinking.querySelector('.msg-bubble').innerHTML = renderText(aiText);
     thinking.querySelector('.msg-meta').textContent = aiMeta;
     chatHistory.push({role:'ai', text:aiText, meta:aiMeta});
