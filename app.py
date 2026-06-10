@@ -667,8 +667,10 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .scan-run-btn:active{transform:scale(.96);}
 .bottom-chat{flex:1;display:flex;flex-direction:column;padding:16px;gap:8px;justify-content:flex-end;min-width:0;overflow:hidden;}
 /* SVG mode labels on the knob ring */
-.bk-lbl{font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:.05em;fill:rgba(220,235,245,.55);cursor:default;}
+.bk-lbl{font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:.05em;fill:rgba(220,235,245,.55);cursor:pointer;transition:fill .12s;}
+.bk-lbl:hover{fill:rgba(255,255,255,.85);}
 .bk-lbl.active{font-size:12px;font-weight:900;fill:#00C8BE;}
+.bk-hit{fill:transparent;cursor:pointer;}
 
 /* ── Stats strip ── */
 .stats-strip{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--panel);overflow:hidden;}
@@ -1234,15 +1236,24 @@ body.light .chord-drop-lbl{font-size:11px;}
         <path id="bk-arc-fill" fill="none" stroke="#00C8BE" stroke-width="7" stroke-linecap="round" filter="url(#bk-glow)"/>
         <!-- Tick marks (JS-updated) -->
         <g id="bk-marks"></g>
+        <!-- Invisible hit targets (click to jump to that mode) -->
+        <circle class="bk-hit" cx="73.9"  cy="287.1" r="22" onclick="knobJump(0)"/>
+        <circle class="bk-hit" cx="30.8"  cy="196.7" r="22" onclick="knobJump(1)"/>
+        <circle class="bk-hit" cx="52.8"  cy="101.5" r="22" onclick="knobJump(2)"/>
+        <circle class="bk-hit" cx="131.2" cy="39.2"  r="22" onclick="knobJump(3)"/>
+        <circle class="bk-hit" cx="228.8" cy="39.2"  r="22" onclick="knobJump(4)"/>
+        <circle class="bk-hit" cx="307.2" cy="101.5" r="22" onclick="knobJump(5)"/>
+        <circle class="bk-hit" cx="329.2" cy="196.7" r="22" onclick="knobJump(6)"/>
+        <circle class="bk-hit" cx="286.1" cy="287.1" r="22" onclick="knobJump(7)"/>
         <!-- Static mode labels — JS toggles .active class for highlight -->
-        <text id="bk-lbl-0" class="bk-lbl"  x="73.9"  y="290.6" text-anchor="middle">SCAN</text>
-        <text id="bk-lbl-1" class="bk-lbl"  x="30.8"  y="200.2" text-anchor="middle">MUD</text>
-        <text id="bk-lbl-2" class="bk-lbl"  x="52.8"  y="105.0" text-anchor="middle">VOCAL</text>
-        <text id="bk-lbl-3" class="bk-lbl"  x="131.2" y="42.7"  text-anchor="middle">SPACE</text>
-        <text id="bk-lbl-4" class="bk-lbl"  x="228.8" y="42.7"  text-anchor="middle">LOW</text>
-        <text id="bk-lbl-5" class="bk-lbl"  x="307.2" y="105.0" text-anchor="middle">DYN</text>
-        <text id="bk-lbl-6" class="bk-lbl"  x="329.2" y="200.2" text-anchor="middle">PRI</text>
-        <text id="bk-lbl-7" class="bk-lbl"  x="286.1" y="290.6" text-anchor="middle">ARR</text>
+        <text id="bk-lbl-0" class="bk-lbl"  x="73.9"  y="290.6" text-anchor="middle" onclick="knobJump(0)">SCAN</text>
+        <text id="bk-lbl-1" class="bk-lbl"  x="30.8"  y="200.2" text-anchor="middle" onclick="knobJump(1)">MUD</text>
+        <text id="bk-lbl-2" class="bk-lbl"  x="52.8"  y="105.0" text-anchor="middle" onclick="knobJump(2)">VOCAL</text>
+        <text id="bk-lbl-3" class="bk-lbl"  x="131.2" y="42.7"  text-anchor="middle" onclick="knobJump(3)">SPACE</text>
+        <text id="bk-lbl-4" class="bk-lbl"  x="228.8" y="42.7"  text-anchor="middle" onclick="knobJump(4)">LOW</text>
+        <text id="bk-lbl-5" class="bk-lbl"  x="307.2" y="105.0" text-anchor="middle" onclick="knobJump(5)">DYN</text>
+        <text id="bk-lbl-6" class="bk-lbl"  x="329.2" y="200.2" text-anchor="middle" onclick="knobJump(6)">PRI</text>
+        <text id="bk-lbl-7" class="bk-lbl"  x="286.1" y="290.6" text-anchor="middle" onclick="knobJump(7)">ARR</text>
       </svg>
       <!-- Inner knob face (CSS — pointer rotates via JS) -->
       <div class="bk-face-outer">
@@ -1629,6 +1640,11 @@ function knobClick(e) {
 
 function knobAdvance(dir) {
   knobPos = (knobPos + dir + KNOB_MODES.length) % KNOB_MODES.length;
+  drawKnob();
+}
+
+function knobJump(pos) {
+  knobPos = pos;
   drawKnob();
 }
 
