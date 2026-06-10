@@ -1406,6 +1406,11 @@ function gbMode(mode) {
   buildBtn.classList.toggle('active', next === 'BUILD');
   exploreBtn.classList.toggle('active', next === 'EXPLORE');
   gbPost({mode: next});
+  // If BUILD is activated with a prompt, run immediately
+  if (next === 'BUILD') {
+    var promptEl = document.getElementById('gb-prompt');
+    if (promptEl && promptEl.value.trim()) gbRun();
+  }
 }
 
 function gbMute() {
@@ -1467,13 +1472,6 @@ function gbSyncFromGain(g) {
   var exploreBtn = document.getElementById('gb-explore-btn');
   if (buildBtn)   buildBtn.classList.toggle('active', mode === 'BUILD');
   if (exploreBtn) exploreBtn.classList.toggle('active', mode === 'EXPLORE');
-  // Auto-run when nano switches to EXPLORE and prompt has text
-  if (mode === 'EXPLORE' && _gbLastMode !== 'EXPLORE') {
-    var promptEl = document.getElementById('gb-prompt');
-    if (promptEl && promptEl.value.trim()) {
-      setTimeout(gbRun, 300); // slight delay so button state settles
-    }
-  }
   _gbLastMode = mode;
   // Mute
   _gbMuted = (g.t1_on === false);
