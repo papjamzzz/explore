@@ -1789,6 +1789,21 @@ async function runScan() {
     renderHealthChart(allTracks, trackScores);
     saveState();
     toast('Loaded ' + allTracks.length + ' tracks');
+
+    // Post scan summary to chat so results are visible
+    var sess = d.session || {};
+    var probs = d.problems || [];
+    var probLines = probs.filter(function(p){ return p.severity !== 'none'; })
+      .map(function(p){ return '• [' + p.severity.toUpperCase() + '] ' + p.title + ' — ' + p.detail; });
+    var summary = '**Session scanned.** '
+      + allTracks.length + ' tracks · '
+      + (sess.tempo ? sess.tempo.toFixed(1) + ' BPM · ' : '')
+      + 'Mix health: ' + overallHealth + '/100\n\n'
+      + (probLines.length
+          ? '**Detected issues:**\n' + probLines.join('\n') + '\n\nSelect a mode (MUD, VOCAL, etc.) and hit RUN for a deep dive.'
+          : 'No critical issues detected. Select a mode for a deeper analysis.');
+    addMessage('assistant', summary);
+    chatHistory.push({role:'assistant', text:summary, meta:''});
   } catch(e) {
     document.getElementById('ableton-dot').classList.remove('on');
     toast('Cannot reach Ableton', true);
