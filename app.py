@@ -653,7 +653,7 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .bk-wrap{position:relative;width:360px;height:360px;flex-shrink:0;}
 .bk-svg{position:absolute;inset:0;width:100%;height:100%;}
 .bk-face-outer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.bk-face-shell{position:relative;width:176px;height:176px;border-radius:50%;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:all;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 50%,#060E18 100%);box-shadow:0 8px 40px rgba(0,0,0,.9),inset 0 2px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.5);}
+.bk-face-shell{position:relative;width:176px;height:176px;border-radius:50%;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:all;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 50%,#060E18 100%);box-shadow:0 4px 16px rgba(0,0,0,.7),inset 0 2px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.5);}
 .bk-knurl{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.022) 0deg,transparent 2deg,transparent 12deg,rgba(255,255,255,.022) 14deg);}
 .bk-inner-face{position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#1E2E3E 0%,#080F18 60%,#040A10 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.04),inset 0 1px 4px rgba(0,0,0,.8);}
 .bk-ptr{position:absolute;left:50%;top:50%;width:4px;height:58px;margin-left:-2px;margin-top:-58px;transform-origin:bottom center;transform:rotate(-135deg);border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(0,200,188,.45),#00C8BE);transition:transform .22s cubic-bezier(.4,0,.2,1);}
@@ -666,6 +666,9 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .scan-run-btn:hover{opacity:.85;}
 .scan-run-btn:active{transform:scale(.96);}
 .bottom-chat{flex:1;display:flex;flex-direction:column;padding:16px;gap:8px;justify-content:flex-end;min-width:0;overflow:hidden;}
+/* SVG mode labels on the knob ring */
+.bk-lbl{font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:.05em;fill:rgba(220,235,245,.55);cursor:default;}
+.bk-lbl.active{font-size:12px;font-weight:900;fill:#00C8BE;}
 
 /* ── Stats strip ── */
 .stats-strip{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--panel);overflow:hidden;}
@@ -1226,11 +1229,20 @@ body.light .chord-drop-lbl{font-size:11px;}
         <!-- Wood ring outer sheen -->
         <circle cx="180" cy="180" r="119" fill="none" stroke="rgba(255,200,120,.08)" stroke-width="1"/>
         <!-- Arc track background (outside wood ring) -->
-        <path id="bk-arc-bg" fill="none" stroke="rgba(0,160,150,.15)" stroke-width="7" stroke-linecap="round"/>
-        <!-- Arc fill (active green — outside wood ring) -->
+        <path id="bk-arc-bg" fill="none" stroke="rgba(0,180,165,.38)" stroke-width="7" stroke-linecap="round"/>
+        <!-- Arc fill (active green) -->
         <path id="bk-arc-fill" fill="none" stroke="#00C8BE" stroke-width="7" stroke-linecap="round" filter="url(#bk-glow)"/>
-        <!-- Tick marks + mode labels — rendered by JS -->
+        <!-- Tick marks (JS-updated) -->
         <g id="bk-marks"></g>
+        <!-- Static mode labels — JS toggles .active class for highlight -->
+        <text id="bk-lbl-0" class="bk-lbl"  x="73.9"  y="290.6" text-anchor="middle">SCAN</text>
+        <text id="bk-lbl-1" class="bk-lbl"  x="30.8"  y="200.2" text-anchor="middle">MUD</text>
+        <text id="bk-lbl-2" class="bk-lbl"  x="52.8"  y="105.0" text-anchor="middle">VOCAL</text>
+        <text id="bk-lbl-3" class="bk-lbl"  x="131.2" y="42.7"  text-anchor="middle">SPACE</text>
+        <text id="bk-lbl-4" class="bk-lbl"  x="228.8" y="42.7"  text-anchor="middle">LOW</text>
+        <text id="bk-lbl-5" class="bk-lbl"  x="307.2" y="105.0" text-anchor="middle">DYN</text>
+        <text id="bk-lbl-6" class="bk-lbl"  x="329.2" y="200.2" text-anchor="middle">PRI</text>
+        <text id="bk-lbl-7" class="bk-lbl"  x="286.1" y="290.6" text-anchor="middle">ARR</text>
       </svg>
       <!-- Inner knob face (CSS — pointer rotates via JS) -->
       <div class="bk-face-outer">
@@ -1656,42 +1668,32 @@ function drawKnob() {
     }
   }
 
-  // Tick marks + mode labels
+  // Tick marks (one per mode, dynamic)
   var marks = document.getElementById('bk-marks');
   if (marks) {
     marks.innerHTML = '';
     var ns = 'http://www.w3.org/2000/svg';
-    var shortNames = ['SCAN','MUD','VOCAL','SPACE','LOW','DYN','PRI','ARR'];
     for (var i = 0; i < KNOB_MODES.length; i++) {
       var a = KNOB_ANGLES[i];
       var active = (i === knobPos);
-      // Tick mark (just inside arc, between wood outer edge r=119 and arc r=133)
       var t1 = angXY(a, 122); var t2 = angXY(a, 128);
       var tick = document.createElementNS(ns, 'line');
       tick.setAttribute('x1', t1[0].toFixed(1)); tick.setAttribute('y1', t1[1].toFixed(1));
       tick.setAttribute('x2', t2[0].toFixed(1)); tick.setAttribute('y2', t2[1].toFixed(1));
-      tick.setAttribute('stroke', active ? '#00C8BE' : 'rgba(200,220,230,.35)');
-      tick.setAttribute('stroke-width', active ? '2.5' : '1.5');
+      tick.setAttribute('stroke', active ? '#00C8BE' : 'rgba(200,230,240,.3)');
+      tick.setAttribute('stroke-width', active ? '3' : '1.5');
       tick.setAttribute('stroke-linecap', 'round');
       marks.appendChild(tick);
-      // Label — outside the arc, in the open ring zone (r=143 to r=178)
-      var lp = angXY(a, 155);
-      var lbl = document.createElementNS(ns, 'text');
-      lbl.setAttribute('x', lp[0].toFixed(1));
-      lbl.setAttribute('y', (lp[1] + 3.5).toFixed(1));
-      lbl.setAttribute('text-anchor', 'middle');
-      lbl.setAttribute('font-size', active ? '11' : '9.5');
-      lbl.setAttribute('font-weight', active ? '900' : '600');
-      lbl.setAttribute('font-family', 'Inter,system-ui,sans-serif');
-      lbl.setAttribute('letter-spacing', '0.04em');
-      lbl.setAttribute('fill', active ? '#00C8BE' : 'rgba(210,225,235,.5)');
-      if (active) lbl.setAttribute('filter', 'url(#bk-lbl-glow)');
-      lbl.textContent = shortNames[i];
-      marks.appendChild(lbl);
     }
   }
 
-  // Mode name label
+  // Toggle active class on static label text elements
+  for (var j = 0; j < KNOB_MODES.length; j++) {
+    var lel = document.getElementById('bk-lbl-' + j);
+    if (lel) lel.setAttribute('class', j === knobPos ? 'bk-lbl active' : 'bk-lbl');
+  }
+
+  // Mode name label below the knob
   var ml = document.getElementById('knob-mode-lbl');
   if (ml) ml.textContent = KNOB_MODES[knobPos].name;
 }
