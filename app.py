@@ -229,7 +229,7 @@ client = anthropic.Anthropic(api_key=os.getenv("ANTHROPIC_API_KEY"))
 def ask_claude(system, user):
     try:
         msg = client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-4-6",
             max_tokens=1024,
             system=system,
             messages=[{"role": "user", "content": user}]
@@ -394,7 +394,7 @@ def api_gain_run():
                       "Intensity " + str(round(intensity, 2)) + ". Verbosity " + str(round(room, 2)) + ".")
         client = anthropic.Anthropic()
         resp = client.messages.create(
-            model="claude-sonnet-4-5",
+            model="claude-sonnet-4-6",
             max_tokens=int(150 + room * 900),
             system=system,
             messages=[{"role": "user", "content": task}]
