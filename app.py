@@ -946,6 +946,7 @@ body.light .chord-drop-lbl{font-size:11px;}
         <div class="gb-slider-wrap">
           <input type="range" class="gb-slider effort" id="gb-effort" min="0" max="100" value="50"
             oninput="gbFaderInput('intensity', this.value)"
+            ondblclick="this.value=50; gbFaderInput('intensity', 50)"
             onmousedown="this._drag=true" onmouseup="this._drag=false"
             ontouchstart="this._drag=true" ontouchend="this._drag=false">
         </div>
@@ -956,6 +957,7 @@ body.light .chord-drop-lbl{font-size:11px;}
         <div class="gb-slider-wrap">
           <input type="range" class="gb-slider verbosity" id="gb-verbosity" min="0" max="100" value="50"
             oninput="gbFaderInput('room', this.value)"
+            ondblclick="this.value=50; gbFaderInput('room', 50)"
             onmousedown="this._drag=true" onmouseup="this._drag=false"
             ontouchstart="this._drag=true" ontouchend="this._drag=false">
         </div>
