@@ -603,7 +603,8 @@ body.light .msg-bubble{font-size:12px;color:var(--text);}
 body.light .chat-input{font-size:12px;color:var(--text);}
 body.light .hdr-health-sub{font-size:9px;color:var(--dim);}
 body.light .brand-sub{font-size:9px;color:var(--dim);}
-body.light .pill{font-size:10px;color:var(--dim);border-color:var(--border2);}
+body.light .scan-knob-mode{color:var(--teal2);}
+body.light .scan-run-btn{background:var(--teal2);}
 body.light .scan-label{font-size:10px;color:var(--dim);}
 body.light .th-meta{font-size:10px;color:var(--dim);}
 body.light .th-score-lbl{font-size:9px;color:var(--dim);}
@@ -631,7 +632,7 @@ body.light .gb-btn.mute{border-color:#C0CADF;color:#8898B8;}
 body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50%,#C8D4E8 0%,transparent 100%);}
 
 /* ── Header ── */
-.hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:50px;border-bottom:1px solid var(--border);background:rgba(7,5,15,.97);flex-shrink:0;z-index:10;transition:background .25s;}
+.hdr{display:flex;align-items:center;gap:12px;padding:0 16px;height:88px;border-bottom:1px solid var(--border);background:rgba(7,5,15,.97);flex-shrink:0;z-index:10;transition:background .25s;}
 .brand{font-size:15px;font-weight:900;letter-spacing:5px;color:var(--teal);}
 .brand-sub{font-size:7.5px;font-weight:700;letter-spacing:.22em;color:var(--dim);text-transform:uppercase;margin-top:1px;}
 .status-dot{width:7px;height:7px;border-radius:50%;background:var(--red);flex-shrink:0;transition:background .3s;}
@@ -641,13 +642,19 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .hdr-health-sub{font-size:7px;font-weight:800;letter-spacing:.18em;text-transform:uppercase;color:var(--dim);margin-top:2px;}
 .hdr-health-bar{width:64px;height:3px;background:var(--border2);border-radius:2px;margin-top:3px;overflow:hidden;}
 .hdr-health-fill{height:100%;border-radius:2px;transition:width .5s;}
-.hdr-right{margin-left:auto;display:flex;gap:5px;align-items:center;flex-wrap:nowrap;}
-.pill{padding:4px 9px;border-radius:20px;font-size:8.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;border:1px solid var(--border2);background:transparent;color:var(--dim);cursor:pointer;transition:all .15s;white-space:nowrap;}
-.theme-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:15px;padding:3px 8px;cursor:pointer;transition:all .15s;line-height:1.2;flex-shrink:0;}
+.hdr-right{margin-left:auto;display:flex;gap:10px;align-items:center;flex-wrap:nowrap;}
+.theme-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:15px;padding:3px 8px;cursor:pointer;transition:all .15s;line-height:1.2;flex-shrink:0;align-self:flex-start;margin-top:6px;}
 .theme-btn:hover{color:var(--text);border-color:var(--border3);}
-.pill:hover{border-color:var(--teal);color:var(--teal);}
-.pill.primary{background:var(--teal);color:#000;border-color:var(--teal);}
-.pill.primary:hover{opacity:.85;}
+/* ── Scan Knob ── */
+.scan-knob-wrap{display:flex;align-items:center;gap:10px;padding:0 0 0 14px;border-left:1px solid var(--border);}
+.scan-knob-svg{width:72px;height:72px;cursor:pointer;flex-shrink:0;filter:drop-shadow(0 3px 12px rgba(0,0,0,.7));user-select:none;-webkit-user-select:none;}
+.scan-knob-svg:active{filter:drop-shadow(0 1px 6px rgba(0,0,0,.7));}
+.scan-knob-info{display:flex;flex-direction:column;gap:6px;min-width:60px;}
+.scan-knob-mode{font-size:13px;font-weight:900;letter-spacing:.06em;color:var(--teal);text-transform:uppercase;line-height:1;}
+.scan-knob-hint{font-size:7.5px;font-weight:600;letter-spacing:.1em;color:var(--dim2);text-transform:uppercase;}
+.scan-run-btn{padding:9px 18px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:10px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
+.scan-run-btn:hover{opacity:.85;}
+.scan-run-btn:active{transform:scale(.96);}
 
 /* ── Stats strip ── */
 .stats-strip{display:flex;flex-shrink:0;border-bottom:1px solid var(--border);background:var(--panel);overflow:hidden;}
@@ -889,14 +896,49 @@ body.light .chord-drop-lbl{font-size:11px;}
 
   <div class="hdr-right">
     <button class="theme-btn" id="theme-btn" onclick="toggleTheme()" title="Toggle light/dark">◑</button>
-    <button class="pill primary" onclick="runScan()">⟳ Scan</button>
-    <button class="pill" onclick="clearChat()" title="Clear chat history">✕ Chat</button>
-    <button class="pill" onclick="quickPrompt('Why does this mix sound muddy?')">Mud?</button>
-    <button class="pill" onclick="quickPrompt('What is taking up the most space in the mix?')">Space?</button>
-    <button class="pill" onclick="quickPrompt('What should I work on first?')">Priority?</button>
-    <button class="pill" onclick="quickPrompt('How is the low end balance?')">Low End?</button>
-    <button class="pill" onclick="quickPrompt('Where is the vocal sitting in the mix?')">Vocal?</button>
-    <button class="pill" onclick="loadArrangement()">Arrange</button>
+    <div class="scan-knob-wrap">
+      <!-- SVG hardware rotary knob — left-click advances, right-click goes back -->
+      <svg class="scan-knob-svg" id="scan-knob-svg" viewBox="0 0 100 100"
+        onclick="knobClick(event)" oncontextmenu="knobAdvance(-1);event.preventDefault()"
+        title="Left: next mode · Right: prev mode">
+        <defs>
+          <radialGradient id="kfg" cx="37%" cy="30%">
+            <stop offset="0%" stop-color="#2C3E52"/>
+            <stop offset="55%" stop-color="#0D1E2E"/>
+            <stop offset="100%" stop-color="#060E1A"/>
+          </radialGradient>
+          <filter id="lglow" x="-100%" y="-100%" width="300%" height="300%">
+            <feGaussianBlur stdDeviation="2" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+          <filter id="lglowdim" x="-80%" y="-80%" width="260%" height="260%">
+            <feGaussianBlur stdDeviation="1" result="b"/>
+            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+          </filter>
+        </defs>
+        <!-- Outer bezel -->
+        <circle cx="50" cy="50" r="49" fill="#07101A" stroke="#0C1828" stroke-width="0.5"/>
+        <!-- Brushed metal outer ring -->
+        <circle cx="50" cy="50" r="45" fill="none" stroke="#0D1A28" stroke-width="6"/>
+        <!-- LED dots + tick marks rendered by JS -->
+        <g id="k-leds"></g>
+        <!-- Knob face -->
+        <circle cx="50" cy="50" r="36" fill="url(#kfg)" stroke="#1C3040" stroke-width="1.2"/>
+        <!-- Brushed rings -->
+        <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,.05)" stroke-width=".8"/>
+        <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(255,255,255,.03)" stroke-width=".8"/>
+        <!-- Pointer indicator -->
+        <line id="k-ptr" x1="50" y1="46" x2="50" y2="18" stroke="#00C8BE" stroke-width="2.5" stroke-linecap="round"/>
+        <circle id="k-ptr-tip" cx="50" cy="18" r="2.5" fill="#00C8BE" filter="url(#lglow)"/>
+        <!-- Center hub -->
+        <circle cx="50" cy="50" r="5.5" fill="#060D16" stroke="rgba(0,200,188,.2)" stroke-width="1"/>
+      </svg>
+      <div class="scan-knob-info">
+        <div class="scan-knob-mode" id="knob-mode-lbl">SCAN</div>
+        <div class="scan-knob-hint">← → or click knob</div>
+        <button class="scan-run-btn" onclick="knobRun()" id="knob-run-btn">RUN</button>
+      </div>
+    </div>
   </div>
 </div>
 
@@ -1513,6 +1555,92 @@ async function fetchGain() {
   } catch(e) {}
 }
 
+// ── Rotary Knob ────────────────────────────────────────────────────────────────
+var KNOB_MODES = [
+  { name:'SCAN',     fn: function(){ runScan(); } },
+  { name:'MUD',      fn: function(){ quickPrompt('Why does this mix sound muddy? Identify every track contributing to low-mid buildup (200-500 Hz). Give me specific EQ cuts with frequencies and amounts.'); } },
+  { name:'VOCAL',    fn: function(){ quickPrompt('Analyse the vocal tracks in this session. Is the vocal sitting clearly in the mix? What is competing with it in the 1-4 kHz presence range? Give me exact fixes.'); } },
+  { name:'SPACE',    fn: function(){ quickPrompt('Map the frequency space in this mix. Which tracks are occupying the same zones? Where is it congested and where is it thin? Be specific about Hz ranges and which tracks.'); } },
+  { name:'LOW END',  fn: function(){ quickPrompt('Analyse the low end in this mix. Which track should own 20-60 Hz sub? What is happening 60-200 Hz? Are the bass sources conflicting? Give me a concrete hierarchy and fixes.'); } },
+  { name:'DYNAMICS', fn: function(){ quickPrompt('How is the dynamic balance in this mix? Is anything over-compressed or squashed? What are the loudness relationships between elements? What should be levelled or automated?'); } },
+  { name:'PRIORITY', fn: function(){ quickPrompt('Given everything you know about this session, what is the single highest-impact change I can make right now? Rank the top 3 issues by the improvement they would create.'); } },
+  { name:'ARRANGE',  fn: function(){ loadArrangement(); } },
+];
+var KNOB_ANGLES = [-135, -96, -58, -19, 19, 58, 96, 135];
+var knobPos = 0;
+
+function knobClick(e) {
+  var rect = e.currentTarget.getBoundingClientRect();
+  var cx = rect.left + rect.width / 2;
+  knobAdvance(e.clientX >= cx ? 1 : -1);
+}
+
+function knobAdvance(dir) {
+  knobPos = (knobPos + dir + KNOB_MODES.length) % KNOB_MODES.length;
+  drawKnob();
+}
+
+function drawKnob() {
+  var angle = KNOB_ANGLES[knobPos];
+  var rad = angle * Math.PI / 180;
+  // Pointer tip at distance 32 from center (50,50)
+  var tx = 50 + 32 * Math.sin(rad);
+  var ty = 50 - 32 * Math.cos(rad);
+  // Base of pointer slightly back from center
+  var bx = 50 + 4 * Math.sin(rad);
+  var by = 50 - 4 * Math.cos(rad);
+  var ptr = document.getElementById('k-ptr');
+  var tip = document.getElementById('k-ptr-tip');
+  if (ptr) { ptr.setAttribute('x1', bx.toFixed(1)); ptr.setAttribute('y1', by.toFixed(1)); ptr.setAttribute('x2', tx.toFixed(1)); ptr.setAttribute('y2', ty.toFixed(1)); }
+  if (tip) { tip.setAttribute('cx', tx.toFixed(1)); tip.setAttribute('cy', ty.toFixed(1)); }
+  // LED dots
+  var g = document.getElementById('k-leds');
+  if (g) {
+    g.innerHTML = '';
+    for (var i = 0; i < KNOB_MODES.length; i++) {
+      var a = KNOB_ANGLES[i] * Math.PI / 180;
+      var lx = 50 + 44 * Math.sin(a);
+      var ly = 50 - 44 * Math.cos(a);
+      var active = (i === knobPos);
+      var dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
+      dot.setAttribute('cx', lx.toFixed(1)); dot.setAttribute('cy', ly.toFixed(1));
+      dot.setAttribute('r', active ? '3.5' : '2');
+      dot.setAttribute('fill', active ? '#00C8BE' : 'rgba(0,180,170,.2)');
+      if (active) dot.setAttribute('filter','url(#lglow)');
+      g.appendChild(dot);
+      // Tick mark label (tiny text)
+      var lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
+      var labR = 57;
+      var labX = 50 + labR * Math.sin(a);
+      var labY = 50 - labR * Math.cos(a);
+      // Nudge text anchoring based on position
+      var anchor = Math.abs(angle) < 5 ? 'middle' : (Math.sin(a) > 0.1 ? 'start' : (Math.sin(a) < -0.1 ? 'end' : 'middle'));
+      lbl.setAttribute('x', labX.toFixed(1)); lbl.setAttribute('y', (labY + 2).toFixed(1));
+      lbl.setAttribute('text-anchor', anchor);
+      lbl.setAttribute('font-size', '6.5'); lbl.setAttribute('font-weight', '800');
+      lbl.setAttribute('font-family', 'Inter,system-ui,sans-serif');
+      lbl.setAttribute('letter-spacing', '0.04em');
+      lbl.setAttribute('fill', active ? '#00C8BE' : 'rgba(120,150,160,.55)');
+      var shortNames = ['SCN','MUD','VOX','SPC','LOW','DYN','PRI','ARR'];
+      lbl.textContent = shortNames[i];
+      g.appendChild(lbl);
+    }
+  }
+  // Mode label
+  var ml = document.getElementById('knob-mode-lbl');
+  if (ml) ml.textContent = KNOB_MODES[knobPos].name;
+}
+
+function knobRun() {
+  var btn = document.getElementById('knob-run-btn');
+  if (btn) { btn.textContent = '···'; btn.disabled = true; }
+  var restore = function() { if (btn) { btn.textContent = 'RUN'; btn.disabled = false; } };
+  try {
+    KNOB_MODES[knobPos].fn();
+  } catch(e) {}
+  setTimeout(restore, 2000);
+}
+
 // ── Scan ──────────────────────────────────────────────────────────────────────
 var scanPromise = null;
 
@@ -2027,6 +2155,14 @@ async function loadArrangement() {
   });
   var pp = document.getElementById('project-path');
   if (pp) pp.addEventListener('change', saveState);
+  // Arrow keys rotate the scan knob (when not focused on a text input)
+  document.addEventListener('keydown', function(e) {
+    var tag = document.activeElement ? document.activeElement.tagName : '';
+    if (tag === 'INPUT' || tag === 'TEXTAREA') return;
+    if (e.key === 'ArrowRight' || e.key === 'ArrowUp') { e.preventDefault(); knobAdvance(1); }
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowDown') { e.preventDefault(); knobAdvance(-1); }
+    if (e.key === 'Enter') { e.preventDefault(); knobRun(); }
+  });
 })();
 
 // ── Toast ─────────────────────────────────────────────────────────────────────
@@ -2153,6 +2289,7 @@ async function runChordID(file) {
   if (btn) btn.textContent = document.body.classList.contains('light') ? '◑' : '◐';
 })();
 loadState();
+drawKnob();
 fetchGain();
 setInterval(fetchGain, 2000);
 ensureScanned();
