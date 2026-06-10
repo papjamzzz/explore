@@ -662,7 +662,11 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .bk-label-row{display:flex;align-items:center;gap:16px;}
 .bk-mode-name{font-size:18px;font-weight:900;letter-spacing:.08em;color:var(--teal);text-transform:uppercase;}
 .bk-hint{font-size:7px;font-weight:600;letter-spacing:.14em;color:var(--dim2);text-transform:uppercase;}
-.scan-run-btn{padding:10px 22px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:11px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
+.bk-pills{display:flex;flex-wrap:wrap;gap:5px;justify-content:center;max-width:360px;}
+.bk-pill{background:rgba(0,180,165,.1);border:1px solid rgba(0,180,165,.25);color:rgba(200,230,240,.55);border-radius:5px;padding:5px 10px;font-size:9px;font-weight:800;letter-spacing:.12em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:background .12s,color .12s,border-color .12s;}
+.bk-pill:hover{background:rgba(0,180,165,.22);color:#fff;border-color:rgba(0,200,188,.5);}
+.bk-pill.active{background:rgba(0,200,188,.2);border-color:#00C8BE;color:#00C8BE;}
+.scan-run-btn{padding:10px 40px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:13px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
 .scan-run-btn:hover{opacity:.85;}
 .scan-run-btn:active{transform:scale(.96);}
 .bottom-chat{flex:1;display:flex;flex-direction:column;padding:16px;gap:8px;justify-content:flex-end;min-width:0;overflow:hidden;}
@@ -1280,12 +1284,19 @@ body.light .chord-drop-lbl{font-size:11px;}
         </div>
       </div>
     </div>
-    <!-- Mode name + RUN -->
-    <div class="bk-label-row">
-      <div class="bk-mode-name" id="knob-mode-lbl">SCAN</div>
-      <div class="bk-hint">← → scroll · click knob</div>
-      <button class="scan-run-btn" onclick="knobRun()" id="knob-run-btn">RUN</button>
+    <!-- Mode selector pills -->
+    <div class="bk-pills" id="bk-pills">
+      <button class="bk-pill active" onclick="knobJump(0);return false;">SCAN</button>
+      <button class="bk-pill" onclick="knobJump(1);return false;">MUD</button>
+      <button class="bk-pill" onclick="knobJump(2);return false;">VOCAL</button>
+      <button class="bk-pill" onclick="knobJump(3);return false;">SPACE</button>
+      <button class="bk-pill" onclick="knobJump(4);return false;">LOW</button>
+      <button class="bk-pill" onclick="knobJump(5);return false;">DYN</button>
+      <button class="bk-pill" onclick="knobJump(6);return false;">PRI</button>
+      <button class="bk-pill" onclick="knobJump(7);return false;">ARR</button>
     </div>
+    <!-- RUN -->
+    <button class="scan-run-btn" onclick="knobRun();return false;" id="knob-run-btn">RUN</button>
   </div>
 
   <!-- Chat input (fills remaining width) -->
@@ -1722,9 +1733,14 @@ function drawKnob() {
     if (dot) dot.setAttribute('class', j === knobPos ? 'bk-dot active' : 'bk-dot');
   }
 
-  // Mode name label below the knob
-  var ml = document.getElementById('knob-mode-lbl');
-  if (ml) ml.textContent = KNOB_MODES[knobPos].name;
+  // Sync pill active states
+  var pillsEl = document.getElementById('bk-pills');
+  if (pillsEl) {
+    var pills = pillsEl.querySelectorAll('.bk-pill');
+    for (var p = 0; p < pills.length; p++) {
+      pills[p].className = p === knobPos ? 'bk-pill active' : 'bk-pill';
+    }
+  }
 }
 
 function knobRun() {
