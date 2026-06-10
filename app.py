@@ -653,10 +653,10 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .bk-wrap{position:relative;width:360px;height:360px;flex-shrink:0;}
 .bk-svg{position:absolute;inset:0;width:100%;height:100%;}
 .bk-face-outer{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;pointer-events:none;}
-.bk-face-shell{position:relative;width:228px;height:228px;border-radius:50%;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:all;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 50%,#060E18 100%);box-shadow:0 8px 40px rgba(0,0,0,.9),inset 0 2px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.5);}
+.bk-face-shell{position:relative;width:176px;height:176px;border-radius:50%;cursor:pointer;user-select:none;-webkit-user-select:none;pointer-events:all;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 50%,#060E18 100%);box-shadow:0 8px 40px rgba(0,0,0,.9),inset 0 2px 0 rgba(255,255,255,.06),inset 0 -2px 0 rgba(0,0,0,.5);}
 .bk-knurl{position:absolute;inset:0;border-radius:50%;background:repeating-conic-gradient(rgba(255,255,255,.022) 0deg,transparent 2deg,transparent 12deg,rgba(255,255,255,.022) 14deg);}
 .bk-inner-face{position:absolute;inset:18px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#1E2E3E 0%,#080F18 60%,#040A10 100%);box-shadow:inset 0 2px 0 rgba(255,255,255,.04),inset 0 1px 4px rgba(0,0,0,.8);}
-.bk-ptr{position:absolute;left:50%;top:50%;width:4px;height:76px;margin-left:-2px;margin-top:-76px;transform-origin:bottom center;transform:rotate(-135deg);border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(0,200,188,.45),#00C8BE);transition:transform .22s cubic-bezier(.4,0,.2,1);}
+.bk-ptr{position:absolute;left:50%;top:50%;width:4px;height:58px;margin-left:-2px;margin-top:-58px;transform-origin:bottom center;transform:rotate(-135deg);border-radius:4px 4px 0 0;background:linear-gradient(to top,rgba(0,200,188,.45),#00C8BE);transition:transform .22s cubic-bezier(.4,0,.2,1);}
 .bk-ptr::after{content:'';position:absolute;top:-2px;left:50%;transform:translateX(-50%);width:8px;height:8px;border-radius:50%;background:#00C8BE;box-shadow:0 0 12px 4px rgba(0,200,188,.8);}
 .bk-cap{position:absolute;inset:0;margin:auto;width:22px;height:22px;border-radius:50%;background:radial-gradient(circle at 40% 35%,#1A2E40,#060E18);border:1px solid rgba(0,200,188,.3);box-shadow:0 2px 8px rgba(0,0,0,.7);}
 .bk-label-row{display:flex;align-items:center;gap:16px;}
@@ -1217,16 +1217,18 @@ body.light .chord-drop-lbl{font-size:11px;}
         </defs>
         <!-- Dark base -->
         <circle cx="180" cy="180" r="178" fill="#040810"/>
-        <!-- Walnut wood ring -->
-        <circle cx="180" cy="180" r="140" fill="none" stroke="url(#bk-wood)" stroke-width="24"/>
+        <!-- Outer label zone bg (subtle dark ring) -->
+        <circle cx="180" cy="180" r="178" fill="none" stroke="rgba(0,0,0,.3)" stroke-width="36"/>
+        <!-- Walnut wood ring — sits just outside inner face -->
+        <circle cx="180" cy="180" r="108" fill="none" stroke="url(#bk-wood)" stroke-width="22"/>
         <!-- Wood ring inner shadow -->
-        <circle cx="180" cy="180" r="128" fill="none" stroke="rgba(0,0,0,.6)" stroke-width="2"/>
+        <circle cx="180" cy="180" r="97" fill="none" stroke="rgba(0,0,0,.55)" stroke-width="2"/>
         <!-- Wood ring outer sheen -->
-        <circle cx="180" cy="180" r="152" fill="none" stroke="rgba(255,200,120,.06)" stroke-width="1"/>
-        <!-- Arc track background -->
-        <path id="bk-arc-bg" fill="none" stroke="rgba(0,160,150,.14)" stroke-width="6" stroke-linecap="round"/>
-        <!-- Arc fill (active green) -->
-        <path id="bk-arc-fill" fill="none" stroke="#00C8BE" stroke-width="6" stroke-linecap="round" filter="url(#bk-glow)"/>
+        <circle cx="180" cy="180" r="119" fill="none" stroke="rgba(255,200,120,.08)" stroke-width="1"/>
+        <!-- Arc track background (outside wood ring) -->
+        <path id="bk-arc-bg" fill="none" stroke="rgba(0,160,150,.15)" stroke-width="7" stroke-linecap="round"/>
+        <!-- Arc fill (active green — outside wood ring) -->
+        <path id="bk-arc-fill" fill="none" stroke="#00C8BE" stroke-width="7" stroke-linecap="round" filter="url(#bk-glow)"/>
         <!-- Tick marks + mode labels — rendered by JS -->
         <g id="bk-marks"></g>
       </svg>
@@ -1640,9 +1642,9 @@ function drawKnob() {
            p2[0].toFixed(2) + ' ' + p2[1].toFixed(2);
   }
 
-  // Full background arc (-135° to +135° = 270°)
+  // Full background arc at r=133 (outside wood ring outer edge r=119)
   var bgArc = document.getElementById('bk-arc-bg');
-  if (bgArc) bgArc.setAttribute('d', arcPath(-135, 135, 162));
+  if (bgArc) bgArc.setAttribute('d', arcPath(-135, 135, 133));
 
   // Active fill arc: from start to current
   var fillArc = document.getElementById('bk-arc-fill');
@@ -1650,7 +1652,7 @@ function drawKnob() {
     if (knobPos === 0) {
       fillArc.setAttribute('d', '');  // at start, no fill
     } else {
-      fillArc.setAttribute('d', arcPath(-135, angle, 162));
+      fillArc.setAttribute('d', arcPath(-135, angle, 133));
     }
   }
 
@@ -1663,26 +1665,26 @@ function drawKnob() {
     for (var i = 0; i < KNOB_MODES.length; i++) {
       var a = KNOB_ANGLES[i];
       var active = (i === knobPos);
-      // Tick mark (between wood ring outer edge and arc)
-      var t1 = angXY(a, 154); var t2 = angXY(a, 159);
+      // Tick mark (just inside arc, between wood outer edge r=119 and arc r=133)
+      var t1 = angXY(a, 122); var t2 = angXY(a, 128);
       var tick = document.createElementNS(ns, 'line');
       tick.setAttribute('x1', t1[0].toFixed(1)); tick.setAttribute('y1', t1[1].toFixed(1));
       tick.setAttribute('x2', t2[0].toFixed(1)); tick.setAttribute('y2', t2[1].toFixed(1));
-      tick.setAttribute('stroke', active ? '#00C8BE' : 'rgba(200,220,230,.3)');
+      tick.setAttribute('stroke', active ? '#00C8BE' : 'rgba(200,220,230,.35)');
       tick.setAttribute('stroke-width', active ? '2.5' : '1.5');
       tick.setAttribute('stroke-linecap', 'round');
       marks.appendChild(tick);
-      // Label — upright text outside the arc ring
-      var lp = angXY(a, 172);
+      // Label — outside the arc, in the open ring zone (r=143 to r=178)
+      var lp = angXY(a, 155);
       var lbl = document.createElementNS(ns, 'text');
       lbl.setAttribute('x', lp[0].toFixed(1));
       lbl.setAttribute('y', (lp[1] + 3.5).toFixed(1));
       lbl.setAttribute('text-anchor', 'middle');
-      lbl.setAttribute('font-size', active ? '10' : '9');
+      lbl.setAttribute('font-size', active ? '11' : '9.5');
       lbl.setAttribute('font-weight', active ? '900' : '600');
       lbl.setAttribute('font-family', 'Inter,system-ui,sans-serif');
       lbl.setAttribute('letter-spacing', '0.04em');
-      lbl.setAttribute('fill', active ? '#00C8BE' : 'rgba(210,225,235,.45)');
+      lbl.setAttribute('fill', active ? '#00C8BE' : 'rgba(210,225,235,.5)');
       if (active) lbl.setAttribute('filter', 'url(#bk-lbl-glow)');
       lbl.textContent = shortNames[i];
       marks.appendChild(lbl);
