@@ -667,9 +667,13 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .scan-run-btn:active{transform:scale(.96);}
 .bottom-chat{flex:1;display:flex;flex-direction:column;padding:16px;gap:8px;justify-content:flex-end;min-width:0;overflow:hidden;}
 /* SVG mode labels on the knob ring */
-.bk-lbl{font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:.05em;fill:rgba(220,235,245,.55);cursor:pointer;transition:fill .12s;}
-.bk-lbl:hover{fill:rgba(255,255,255,.85);}
+.bk-lbl{font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:.05em;fill:rgba(220,235,245,.55);cursor:pointer;}
+.bk-lbl:hover{fill:rgba(255,255,255,.9);}
 .bk-lbl.active{font-size:12px;font-weight:900;fill:#00C8BE;}
+/* LED indicator dots on the arc ring */
+.bk-dot{r:4px;fill:rgba(0,180,165,.22);cursor:pointer;transition:fill .15s,r .15s;}
+.bk-dot:hover{fill:rgba(0,200,188,.45);}
+.bk-dot.active{r:6px;fill:#00C8BE;}
 .bk-hit{fill:transparent;cursor:pointer;}
 
 /* ── Stats strip ── */
@@ -1236,6 +1240,15 @@ body.light .chord-drop-lbl{font-size:11px;}
         <path id="bk-arc-fill" fill="none" stroke="#00C8BE" stroke-width="7" stroke-linecap="round" filter="url(#bk-glow)"/>
         <!-- Tick marks (JS-updated) -->
         <g id="bk-marks"></g>
+        <!-- LED position dots on arc ring -->
+        <circle class="bk-dot" id="bk-dot-0" cx="86.0"  cy="274.0" onclick="knobJump(0)"/>
+        <circle class="bk-dot" id="bk-dot-1" cx="47.7"  cy="193.9" onclick="knobJump(1)"/>
+        <circle class="bk-dot" id="bk-dot-2" cx="67.2"  cy="109.5" onclick="knobJump(2)"/>
+        <circle class="bk-dot" id="bk-dot-3" cx="136.7" cy="54.3"  onclick="knobJump(3)"/>
+        <circle class="bk-dot" id="bk-dot-4" cx="223.3" cy="54.3"  onclick="knobJump(4)"/>
+        <circle class="bk-dot" id="bk-dot-5" cx="292.8" cy="109.5" onclick="knobJump(5)"/>
+        <circle class="bk-dot" id="bk-dot-6" cx="312.3" cy="193.9" onclick="knobJump(6)"/>
+        <circle class="bk-dot" id="bk-dot-7" cx="274.0" cy="274.0" onclick="knobJump(7)"/>
         <!-- Invisible hit targets (click to jump to that mode) -->
         <circle class="bk-hit" cx="73.9"  cy="287.1" r="22" onclick="knobJump(0)"/>
         <circle class="bk-hit" cx="30.8"  cy="196.7" r="22" onclick="knobJump(1)"/>
@@ -1703,10 +1716,12 @@ function drawKnob() {
     }
   }
 
-  // Toggle active class on static label text elements
+  // Toggle active class on static label text elements and LED dots
   for (var j = 0; j < KNOB_MODES.length; j++) {
     var lel = document.getElementById('bk-lbl-' + j);
     if (lel) lel.setAttribute('class', j === knobPos ? 'bk-lbl active' : 'bk-lbl');
+    var dot = document.getElementById('bk-dot-' + j);
+    if (dot) dot.setAttribute('class', j === knobPos ? 'bk-dot active' : 'bk-dot');
   }
 
   // Mode name label below the knob
