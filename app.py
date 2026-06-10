@@ -646,11 +646,29 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .theme-btn{background:transparent;border:1px solid var(--border2);border-radius:8px;color:var(--dim);font-size:15px;padding:3px 8px;cursor:pointer;transition:all .15s;line-height:1.2;flex-shrink:0;}
 .theme-btn:hover{color:var(--text);border-color:var(--border3);}
 /* ── Scan Knob — absolutely centered in header ── */
-.scan-knob-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:14px;pointer-events:none;}
-.scan-knob-svg{width:104px;height:104px;cursor:pointer;flex-shrink:0;filter:drop-shadow(0 4px 20px rgba(0,0,0,.8));user-select:none;-webkit-user-select:none;pointer-events:all;}
-.scan-knob-svg:hover{filter:drop-shadow(0 4px 24px rgba(0,200,190,.25));}
-.scan-knob-svg:active{filter:drop-shadow(0 2px 8px rgba(0,0,0,.8));}
-.scan-knob-info{display:flex;flex-direction:column;gap:7px;pointer-events:all;}
+.scan-knob-wrap{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);display:flex;align-items:center;gap:16px;z-index:2;}
+/* Knob shell */
+.k-shell{position:relative;width:108px;height:108px;flex-shrink:0;cursor:pointer;user-select:none;-webkit-user-select:none;}
+/* Outer bezel ring */
+.k-bezel{position:absolute;inset:0;border-radius:50%;background:radial-gradient(circle at 50% 50%,#0F1E2E 60%,#060E18 100%);box-shadow:0 6px 28px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.04);}
+/* LED dots — injected by JS */
+.k-leds{position:absolute;inset:0;border-radius:50%;}
+/* Knob face */
+.k-face{position:absolute;inset:16px;border-radius:50%;background:radial-gradient(circle at 38% 32%,#2C3E52 0%,#0D1E2E 55%,#060E18 100%);box-shadow:0 3px 14px rgba(0,0,0,.8),inset 0 1px 0 rgba(255,255,255,.07),inset 0 -1px 0 rgba(0,0,0,.5);}
+/* Ring grooves on the face */
+.k-face::before{content:'';position:absolute;inset:6px;border-radius:50%;border:1px solid rgba(255,255,255,.05);}
+.k-face::after{content:'';position:absolute;inset:14px;border-radius:50%;border:1px solid rgba(255,255,255,.03);}
+/* Pointer — rotates, origin at center of knob */
+.k-ptr{position:absolute;left:50%;top:50%;width:3px;height:32px;margin-left:-1.5px;margin-top:-32px;transform-origin:bottom center;transform:rotate(-135deg);border-radius:3px 3px 0 0;background:linear-gradient(to top,rgba(0,200,188,.6),#00C8BE);transition:transform .22s cubic-bezier(.4,0,.2,1);}
+/* Pointer glow tip */
+.k-ptr::after{content:'';position:absolute;top:-1px;left:50%;transform:translateX(-50%);width:5px;height:5px;border-radius:50%;background:#00C8BE;box-shadow:0 0 6px 2px rgba(0,200,188,.7);}
+/* Center cap */
+.k-cap{position:absolute;inset:0;margin:auto;width:12px;height:12px;border-radius:50%;background:#06101A;border:1px solid rgba(0,200,188,.2);}
+/* LED dot elements */
+.k-led{position:absolute;width:5px;height:5px;border-radius:50%;transform:translate(-50%,-50%);background:rgba(0,180,168,.18);transition:background .15s,box-shadow .15s;}
+.k-led.on{background:#00C8BE;box-shadow:0 0 5px 2px rgba(0,200,188,.6);}
+/* Mode label + run */
+.scan-knob-info{display:flex;flex-direction:column;gap:7px;}
 .scan-knob-mode{font-size:17px;font-weight:900;letter-spacing:.05em;color:var(--teal);text-transform:uppercase;line-height:1;}
 .scan-knob-hint{font-size:7px;font-weight:600;letter-spacing:.12em;color:var(--dim2);text-transform:uppercase;}
 .scan-run-btn{padding:10px 22px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:11px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
@@ -892,42 +910,14 @@ body.light .chord-drop-lbl{font-size:11px;}
 
   <!-- Center: scan knob (absolutely centered) -->
   <div class="scan-knob-wrap">
-      <!-- SVG hardware rotary knob — left-click advances, right-click goes back -->
-      <svg class="scan-knob-svg" id="scan-knob-svg" viewBox="0 0 100 100"
-        onclick="knobClick(event)" oncontextmenu="knobAdvance(-1);event.preventDefault()"
-        title="Left: next mode · Right: prev mode">
-        <defs>
-          <radialGradient id="kfg" cx="37%" cy="30%">
-            <stop offset="0%" stop-color="#2C3E52"/>
-            <stop offset="55%" stop-color="#0D1E2E"/>
-            <stop offset="100%" stop-color="#060E1A"/>
-          </radialGradient>
-          <filter id="lglow" x="-100%" y="-100%" width="300%" height="300%">
-            <feGaussianBlur stdDeviation="2" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-          <filter id="lglowdim" x="-80%" y="-80%" width="260%" height="260%">
-            <feGaussianBlur stdDeviation="1" result="b"/>
-            <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-          </filter>
-        </defs>
-        <!-- Outer bezel -->
-        <circle cx="50" cy="50" r="49" fill="#07101A" stroke="#0C1828" stroke-width="0.5"/>
-        <!-- Brushed metal outer ring -->
-        <circle cx="50" cy="50" r="45" fill="none" stroke="#0D1A28" stroke-width="6"/>
-        <!-- LED dots + tick marks rendered by JS -->
-        <g id="k-leds"></g>
-        <!-- Knob face -->
-        <circle cx="50" cy="50" r="36" fill="url(#kfg)" stroke="#1C3040" stroke-width="1.2"/>
-        <!-- Brushed rings -->
-        <circle cx="50" cy="50" r="30" fill="none" stroke="rgba(255,255,255,.05)" stroke-width=".8"/>
-        <circle cx="50" cy="50" r="22" fill="none" stroke="rgba(255,255,255,.03)" stroke-width=".8"/>
-        <!-- Pointer indicator -->
-        <line id="k-ptr" x1="50" y1="46" x2="50" y2="18" stroke="#00C8BE" stroke-width="2.5" stroke-linecap="round"/>
-        <circle id="k-ptr-tip" cx="50" cy="18" r="2.5" fill="#00C8BE" filter="url(#lglow)"/>
-        <!-- Center hub -->
-        <circle cx="50" cy="50" r="5.5" fill="#060D16" stroke="rgba(0,200,188,.2)" stroke-width="1"/>
-      </svg>
+      <div class="k-shell" id="k-shell" onclick="knobClick(event)" oncontextmenu="knobAdvance(-1);event.preventDefault()" title="Left: next mode · Right: prev mode">
+        <div class="k-bezel"></div>
+        <div class="k-leds" id="k-leds"></div>
+        <div class="k-face">
+          <div class="k-ptr" id="k-ptr"></div>
+          <div class="k-cap"></div>
+        </div>
+      </div>
       <div class="scan-knob-info">
         <div class="scan-knob-mode" id="knob-mode-lbl">SCAN</div>
         <div class="scan-knob-hint">← → or click knob</div>
@@ -1588,51 +1578,23 @@ function knobAdvance(dir) {
 
 function drawKnob() {
   var angle = KNOB_ANGLES[knobPos];
-  var rad = angle * Math.PI / 180;
-  // Pointer tip at distance 32 from center (50,50)
-  var tx = 50 + 32 * Math.sin(rad);
-  var ty = 50 - 32 * Math.cos(rad);
-  // Base of pointer slightly back from center
-  var bx = 50 + 4 * Math.sin(rad);
-  var by = 50 - 4 * Math.cos(rad);
   var ptr = document.getElementById('k-ptr');
-  var tip = document.getElementById('k-ptr-tip');
-  if (ptr) { ptr.setAttribute('x1', bx.toFixed(1)); ptr.setAttribute('y1', by.toFixed(1)); ptr.setAttribute('x2', tx.toFixed(1)); ptr.setAttribute('y2', ty.toFixed(1)); }
-  if (tip) { tip.setAttribute('cx', tx.toFixed(1)); tip.setAttribute('cy', ty.toFixed(1)); }
-  // LED dots
-  var g = document.getElementById('k-leds');
-  if (g) {
-    g.innerHTML = '';
+  if (ptr) ptr.style.transform = 'rotate(' + angle + 'deg)';
+  var ledsEl = document.getElementById('k-leds');
+  if (ledsEl) {
+    ledsEl.innerHTML = '';
     for (var i = 0; i < KNOB_MODES.length; i++) {
       var a = KNOB_ANGLES[i] * Math.PI / 180;
-      var lx = 50 + 44 * Math.sin(a);
-      var ly = 50 - 44 * Math.cos(a);
-      var active = (i === knobPos);
-      var dot = document.createElementNS('http://www.w3.org/2000/svg','circle');
-      dot.setAttribute('cx', lx.toFixed(1)); dot.setAttribute('cy', ly.toFixed(1));
-      dot.setAttribute('r', active ? '3.5' : '2');
-      dot.setAttribute('fill', active ? '#00C8BE' : 'rgba(0,180,170,.2)');
-      if (active) dot.setAttribute('filter','url(#lglow)');
-      g.appendChild(dot);
-      // Tick mark label (tiny text)
-      var lbl = document.createElementNS('http://www.w3.org/2000/svg','text');
-      var labR = 57;
-      var labX = 50 + labR * Math.sin(a);
-      var labY = 50 - labR * Math.cos(a);
-      // Nudge text anchoring based on position
-      var anchor = Math.abs(angle) < 5 ? 'middle' : (Math.sin(a) > 0.1 ? 'start' : (Math.sin(a) < -0.1 ? 'end' : 'middle'));
-      lbl.setAttribute('x', labX.toFixed(1)); lbl.setAttribute('y', (labY + 2).toFixed(1));
-      lbl.setAttribute('text-anchor', anchor);
-      lbl.setAttribute('font-size', '6.5'); lbl.setAttribute('font-weight', '800');
-      lbl.setAttribute('font-family', 'Inter,system-ui,sans-serif');
-      lbl.setAttribute('letter-spacing', '0.04em');
-      lbl.setAttribute('fill', active ? '#00C8BE' : 'rgba(120,150,160,.55)');
-      var shortNames = ['SCN','MUD','VOX','SPC','LOW','DYN','PRI','ARR'];
-      lbl.textContent = shortNames[i];
-      g.appendChild(lbl);
+      var r = 44;
+      var lx = 50 + r * Math.sin(a);
+      var ly = 50 - r * Math.cos(a);
+      var led = document.createElement('div');
+      led.className = 'k-led' + (i === knobPos ? ' on' : '');
+      led.style.left = lx + '%';
+      led.style.top = ly + '%';
+      ledsEl.appendChild(led);
     }
   }
-  // Mode label
   var ml = document.getElementById('knob-mode-lbl');
   if (ml) ml.textContent = KNOB_MODES[knobPos].name;
 }
