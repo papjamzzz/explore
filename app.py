@@ -1665,8 +1665,15 @@ function knobAdvance(dir) {
 }
 
 function knobJump(pos) {
-  knobPos = pos;
-  drawKnob();
+  try {
+    knobPos = pos;
+    drawKnob();
+    var area = document.getElementById('chat-area');
+    if (area) area.style.border = '2px solid #00C8BE';
+  } catch(e) {
+    var area = document.getElementById('chat-area');
+    if (area) area.innerHTML = '<div style="color:red;padding:8px;font-weight:bold">ERROR in knobJump: ' + e.message + '</div>' + area.innerHTML;
+  }
 }
 
 function drawKnob() {
@@ -1743,6 +1750,8 @@ function drawKnob() {
 }
 
 function knobRun() {
+  var area = document.getElementById('chat-area');
+  if (area) area.innerHTML = '<div style="color:#00C8BE;padding:8px;font-weight:bold">⟳ Running ' + KNOB_MODES[knobPos].name + '...</div>';
   var btn = document.getElementById('knob-run-btn');
   if (btn) { btn.textContent = '···'; btn.disabled = true; }
   var restore = function() { if (btn) { btn.textContent = 'RUN'; btn.disabled = false; } };
@@ -1819,7 +1828,9 @@ async function runScan() {
     chatHistory.push({role:'assistant', text:summary, meta:''});
   } catch(e) {
     document.getElementById('ableton-dot').classList.remove('on');
-    toast('Cannot reach Ableton', true);
+    var area = document.getElementById('chat-area');
+    if (area) area.innerHTML = '<div style="color:red;padding:8px;font-weight:bold">SCAN ERROR: ' + e.message + '</div>';
+    toast('Scan error: ' + e.message, true);
   }
 }
 
