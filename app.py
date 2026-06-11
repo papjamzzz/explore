@@ -1793,15 +1793,20 @@ function ensureScanned() {
 }
 
 async function runScan() {
+  console.log('[Explore] runScan() called');
+  var area = document.getElementById('chat-area');
+  if (!area) { console.error('[Explore] chat-area missing at runScan start'); }
   toast('Scanning session...');
   try {
+    var ppEl = document.getElementById('project-path');
     var r = await fetch('/api/analyze', {
       method: 'POST',
       headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify({project_path: document.getElementById('project-path').value.trim()})
+      body: JSON.stringify({project_path: ppEl ? ppEl.value.trim() : ''})
     });
     var d = await r.json();
-    document.getElementById('ableton-dot').classList.add('on');
+    console.log('[Explore] scan response: tracks=' + (d.tracks||[]).length + ' health=' + d.overall_health);
+
     sessionCtx      = d.session_ctx || '';
     problemCtx      = d.problem_ctx || '';
     allTracks       = d.tracks || [];
@@ -1813,42 +1818,39 @@ async function runScan() {
 
     if (!allTracks.length) {
       document.getElementById('ableton-dot').classList.remove('on');
-      document.getElementById('track-list').innerHTML =
-        '<div style="padding:14px 10px;font-size:10px;color:var(--dim);line-height:1.6">'
-        + '<div style="font-weight:800;color:var(--orange);margin-bottom:6px">⚠ Ableton Not Connected</div>'
-        + 'Make sure:<br>'
-        + '1. Ableton is open<br>'
-        + '2. AbletonMCP is enabled in Ableton → Settings → MIDI<br>'
-        + '3. The AbletonMCP server script is running'
-        + '</div>';
-      toast('No tracks — is AbletonMCP running?', true);
+      var tl = document.getElementById('track-list');
+      if (tl) tl.innerHTML = '<div style="padding:14px 10px;font-size:11px;font-weight:700;color:#D84840">⚠ Ableton not connected.<br>Open Ableton and enable AbletonMCP.</div>';
+      addMessage('ai', '⚠ No tracks found. Is Ableton open with AbletonMCP running?');
       return;
     }
+
     document.getElementById('ableton-dot').classList.add('on');
-    renderOverallHealth(overallHealth, allTracks, d.problems || []);
-    updateStatCards(d.session, allTracks, overallHealth);
-    renderTracks(allTracks);
-    renderProblems(d.problems || []);
-    renderHealthChart(allTracks, trackScores);
+    try { renderOverallHealth(overallHealth, allTracks, d.problems || []); } catch(e) { console.error('[Explore] renderOverallHealth:', e); }
+    try { updateStatCards(d.session, allTracks, overallHealth); } catch(e) { console.error('[Explore] updateStatCards:', e); }
+    try { renderTracks(allTracks); } catch(e) { console.error('[Explore] renderTracks:', e); }
+    try { renderProblems(d.problems || []); } catch(e) { console.error('[Explore] renderProblems:', e); }
+    try { renderHealthChart(allTracks, trackScores); } catch(e) { console.error('[Explore] renderHealthChart:', e); }
     toast('Loaded ' + allTracks.length + ' tracks');
 
-    // Post scan summary to chat so results are visible
+    // Build summary and post to chat
     var sess = d.session || {};
     var probs = d.problems || [];
-    var probLines = probs.filter(function(p){ return p.severity !== 'none'; })
+    var probLines = probs
+      .filter(function(p){ return p.severity !== 'none'; })
       .map(function(p){ return '• [' + p.severity.toUpperCase() + '] ' + p.title + ' — ' + p.detail; });
-    var summary = '**Session scanned.** '
-      + allTracks.length + ' tracks · '
-      + (sess.tempo ? sess.tempo.toFixed(1) + ' BPM · ' : '')
-      + 'Mix health: ' + overallHealth + '/100\n\n'
-      + (probLines.length
-          ? '**Detected issues:**\n' + probLines.join('\n') + '\n\nSelect a mode (MUD, VOCAL, etc.) and hit RUN for a deep dive.'
-          : 'No critical issues detected. Select a mode for a deeper analysis.');
-    addMessage('assistant', summary);
-    chatHistory.push({role:'assistant', text:summary, meta:''});
-    saveState();
+    var bpm = sess.tempo ? Math.round(sess.tempo) + ' BPM · ' : '';
+    var summary = allTracks.length + ' tracks · ' + bpm + 'health ' + overallHealth + '/100'
+      + (probLines.length ? '\n\n' + probLines.join('\n') : '\n\nNo critical issues. Select a mode and hit RUN.');
+
+    console.log('[Explore] addMessage with summary length=' + summary.length);
+    addMessage('ai', summary);
+    chatHistory.push({role:'ai', text:summary, meta:''});
+    try { saveState(); } catch(e) {}
+
   } catch(e) {
-    document.getElementById('ableton-dot').classList.remove('on');
+    console.error('[Explore] runScan error:', e);
+    var dotEl = document.getElementById('ableton-dot');
+    if (dotEl) dotEl.classList.remove('on');
     addMessage('ai', '⚠ Scan error: ' + e.message);
     toast('Scan error: ' + e.message, true);
   }
@@ -2269,11 +2271,14 @@ async function sendMessage() {
 
 function addMessage(role, text) {
   var area = document.getElementById('chat-area');
+  if (!area) { console.error('[Explore] chat-area not found'); return null; }
   var div = document.createElement('div');
-  div.className = 'msg ' + role;
-  div.innerHTML = '<div class="msg-bubble">' + renderText(text) + '</div><div class="msg-meta"></div>';
+  div.className = 'msg ' + (role || 'ai');
+  var safeText = '';
+  try { safeText = renderText(text || ''); } catch(re) { safeText = String(text || ''); }
+  div.innerHTML = '<div class="msg-bubble" style="color:#0E1422 !important">' + safeText + '</div>';
   area.appendChild(div);
-  scrollChat();
+  try { scrollChat(); } catch(e) {}
   return div;
 }
 
@@ -2476,13 +2481,15 @@ async function runChordID(file) {
   var btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = document.body.classList.contains('light') ? '◑' : '◐';
 })();
-loadState();
+// Clear stale cached state that can interfere with rendering
+try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
 drawKnob();
 fetchGain();
 setInterval(fetchGain, 2000);
 setTimeout(resizeGBSliders, 80);
 setTimeout(resizeGBSliders, 400);
-addMessage('ai', 'I\'m Explore — your AI mix engineer. Scanning your Ableton session now...');
+console.log('[Explore] init — calling addMessage + runScan');
+addMessage('ai', 'Scanning your Ableton session...');
 runScan();
 
 // Chord ID — wire file input via addEventListener (more reliable than onchange attr)
