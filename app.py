@@ -1297,7 +1297,7 @@ body.light .chord-drop-lbl{font-size:11px;}
 
   <!-- Chat panel (fills remaining width) — messages + input stacked -->
   <div class="bottom-chat">
-    <div class="chat-area" id="chat-area" style="flex:1;overflow-y:auto;min-height:0;"></div>
+    <div class="chat-area" id="chat-area" style="flex:1;overflow-y:auto;min-height:120px;border:1px solid var(--border);border-radius:8px;padding:10px 12px;margin-bottom:4px;background:var(--panel2);"></div>
     <div style="display:flex;gap:8px;flex-shrink:0;">
       <textarea class="chat-input" id="chat-input" placeholder="Ask about your mix..." style="flex:1;height:60px;resize:none;"></textarea>
       <button class="send-btn" id="send-btn" onclick="sendMessage()">Ask</button>
@@ -2449,7 +2449,9 @@ loadState();
 drawKnob();
 fetchGain();
 setInterval(fetchGain, 2000);
-ensureScanned();
+// Always run a fresh scan on load — don't rely on cached session state
+addMessage('ai', 'I\'m Explore — your AI mix engineer. Scanning your Ableton session now...');
+runScan();
 // Size sliders after layout is painted
 setTimeout(resizeGBSliders, 80);
 setTimeout(resizeGBSliders, 400);
