@@ -527,9 +527,14 @@ def api_chords():
 
 @app.route("/")
 def index():
+    import time
     from flask import Response
-    resp = Response(HTML, mimetype='text/html; charset=utf-8')
+    ts = str(int(time.time()))
+    page = HTML.replace('__BUILD_TS__', ts)
+    resp = Response(page, mimetype='text/html; charset=utf-8')
     resp.headers['Cache-Control'] = 'no-store, no-cache, must-revalidate'
+    resp.headers['Pragma'] = 'no-cache'
+    resp.headers['Expires'] = '0'
     return resp
 
 # ── UI ─────────────────────────────────────────────────────────────────────────
@@ -911,7 +916,16 @@ body.light .chord-drop-lbl{font-size:11px;}
       <div class="brand-sub">AI Mix Engineer</div>
     </div>
     <div id="ableton-dot" class="status-dot" title="Ableton Live"></div>
-    <button id="js-test-btn" onclick="document.getElementById('js-test-btn').textContent='JS OK ✓'; document.getElementById('js-test-btn').style.background='#00C8BE'; document.getElementById('js-test-btn').style.color='#000';" style="padding:3px 8px;font-size:9px;font-weight:800;background:#ff4444;color:#fff;border:none;border-radius:4px;cursor:pointer;letter-spacing:.1em;">TEST JS</button>
+    <span style="font-size:8px;color:#888;font-family:monospace;">v__BUILD_TS__</span>
+    <button onclick="
+      var out=document.getElementById('scan-direct-out');
+      out.textContent='Scanning...';out.style.color='#007868';
+      fetch('/api/analyze',{method:'POST',headers:{'Content-Type':'application/json'},body:'{}'})
+        .then(function(r){return r.json();})
+        .then(function(d){out.textContent='✓ '+((d.tracks||[]).length)+' tracks · health '+(d.overall_health||0);out.style.color='#007868';})
+        .catch(function(e){out.textContent='✗ '+e.message;out.style.color='red';});
+    " style="padding:4px 10px;font-size:9px;font-weight:800;background:#007868;color:#fff;border:none;border-radius:4px;cursor:pointer;">SCAN NOW</button>
+    <span id="scan-direct-out" style="font-size:10px;font-weight:700;color:#888;"></span>
   </div>
 
   <!-- Right: health + theme -->
