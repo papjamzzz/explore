@@ -669,7 +669,7 @@ body.light .gb-slider-wrap{background:radial-gradient(ellipse 7px 100% at 50% 50
 .scan-run-btn{padding:10px 40px;background:var(--teal);color:#000;border:none;border-radius:7px;font-size:13px;font-weight:900;letter-spacing:.14em;cursor:pointer;font-family:'Inter',system-ui,sans-serif;text-transform:uppercase;transition:opacity .15s,transform .1s;white-space:nowrap;}
 .scan-run-btn:hover{opacity:.85;}
 .scan-run-btn:active{transform:scale(.96);}
-.bottom-chat{flex:1;display:flex;flex-direction:column;padding:16px;gap:8px;justify-content:flex-end;min-width:0;overflow:hidden;}
+.bottom-chat{flex:1;display:flex;flex-direction:column;padding:12px 16px;gap:8px;min-width:0;overflow:hidden;min-height:0;}
 /* SVG mode labels on the knob ring */
 .bk-lbl{font-size:11px;font-weight:700;font-family:'Inter',system-ui,sans-serif;letter-spacing:.05em;fill:rgba(220,235,245,.55);cursor:pointer;}
 .bk-lbl:hover{fill:rgba(255,255,255,.9);}
@@ -911,6 +911,7 @@ body.light .chord-drop-lbl{font-size:11px;}
       <div class="brand-sub">AI Mix Engineer</div>
     </div>
     <div id="ableton-dot" class="status-dot" title="Ableton Live"></div>
+    <button id="js-test-btn" onclick="document.getElementById('js-test-btn').textContent='JS OK ✓'; document.getElementById('js-test-btn').style.background='#00C8BE'; document.getElementById('js-test-btn').style.color='#000';" style="padding:3px 8px;font-size:9px;font-weight:800;background:#ff4444;color:#fff;border:none;border-radius:4px;cursor:pointer;letter-spacing:.1em;">TEST JS</button>
   </div>
 
   <!-- Right: health + theme -->
@@ -1045,12 +1046,7 @@ body.light .chord-drop-lbl{font-size:11px;}
       </div>
     </div>
 
-    <!-- Chat -->
-    <div class="chat-area" id="chat-area">
-      <div class="msg ai">
-        <div class="msg-bubble">I'm Explore — your AI mix engineer. The dashboard is loading your session and Gain state now.<br><br>Hit <strong>Scan</strong> to refresh tracks, or just ask me anything about your mix.</div>
-      </div>
-    </div>
+    <!-- Chat moved to bottom-bar -->
 
   </div>
 
@@ -1299,10 +1295,13 @@ body.light .chord-drop-lbl{font-size:11px;}
     <button class="scan-run-btn" onclick="knobRun();return false;" id="knob-run-btn">RUN</button>
   </div>
 
-  <!-- Chat input (fills remaining width) -->
+  <!-- Chat panel (fills remaining width) — messages + input stacked -->
   <div class="bottom-chat">
-    <textarea class="chat-input" id="chat-input" placeholder="Ask about your mix..." style="flex:1;height:auto;min-height:80px;max-height:220px;resize:none;"></textarea>
-    <button class="send-btn" id="send-btn" onclick="sendMessage()">Ask</button>
+    <div class="chat-area" id="chat-area" style="flex:1;overflow-y:auto;min-height:0;"></div>
+    <div style="display:flex;gap:8px;flex-shrink:0;">
+      <textarea class="chat-input" id="chat-input" placeholder="Ask about your mix..." style="flex:1;height:60px;resize:none;"></textarea>
+      <button class="send-btn" id="send-btn" onclick="sendMessage()">Ask</button>
+    </div>
   </div>
 
 </div>
