@@ -1377,15 +1377,17 @@ function applyState(d) {
     if (d.chatHistory && d.chatHistory.length) {
       chatHistory = d.chatHistory;
       var area = document.getElementById('chat-area');
-      area.innerHTML = '';
-      chatHistory.forEach(function(m) {
-        var div = document.createElement('div');
-        div.className = 'msg ' + m.role;
-        div.innerHTML = '<div class="msg-bubble">' + renderText(m.text) + '</div>'
-          + '<div class="msg-meta">' + esc(m.meta || '') + '</div>';
-        area.appendChild(div);
-      });
-      scrollChat();
+      // Only pre-populate if chat is currently empty — never wipe existing content
+      if (area && area.children.length === 0) {
+        chatHistory.forEach(function(m) {
+          var div = document.createElement('div');
+          div.className = 'msg ' + m.role;
+          div.innerHTML = '<div class="msg-bubble">' + renderText(m.text) + '</div>'
+            + '<div class="msg-meta">' + esc(m.meta || '') + '</div>';
+          area.appendChild(div);
+        });
+        scrollChat();
+      }
     }
   } catch(e) {}
 }
@@ -2474,16 +2476,14 @@ async function runChordID(file) {
   var btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = document.body.classList.contains('light') ? '◑' : '◐';
 })();
+loadState();
 drawKnob();
 fetchGain();
 setInterval(fetchGain, 2000);
 setTimeout(resizeGBSliders, 80);
 setTimeout(resizeGBSliders, 400);
-// Load saved state first, then run scan — prevents applyState() from wiping scan results
-loadState().then(function() {
-  addMessage('ai', 'I\'m Explore — your AI mix engineer. Scanning your Ableton session now...');
-  runScan();
-});
+addMessage('ai', 'I\'m Explore — your AI mix engineer. Scanning your Ableton session now...');
+runScan();
 
 // Chord ID — wire file input via addEventListener (more reliable than onchange attr)
 (function() {
