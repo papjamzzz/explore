@@ -1404,6 +1404,7 @@ function saveState() {
 }
 
 // Load: try localStorage first (instant paint), then server (truth)
+// Returns a Promise so init can sequence after both loads complete.
 function loadState() {
   // 1. Instant render from localStorage cache
   try {
@@ -1411,13 +1412,12 @@ function loadState() {
     if (raw) applyState(JSON.parse(raw));
   } catch(e) {}
 
-  // 2. Authoritative load from server file (may have data from other browsers/sessions)
-  fetch('/api/state', {cache: 'no-store'})
+  // 2. Authoritative load from server file — return Promise so init sequences after
+  return fetch('/api/state', {cache: 'no-store'})
     .then(function(r) { return r.json(); })
     .then(function(d) {
       if (!d || d.error) return;
       applyState(d);
-      // Sync localStorage with server truth
       try { localStorage.setItem(STORAGE_KEY, JSON.stringify(d)); } catch(e) {}
     })
     .catch(function() {});
@@ -1764,15 +1764,20 @@ function drawKnob() {
 }
 
 function knobRun() {
-  var area = document.getElementById('chat-area');
-  if (area) area.innerHTML = '<div style="color:#00C8BE;padding:8px;font-weight:bold">⟳ Running ' + KNOB_MODES[knobPos].name + '...</div>';
+  addMessage('ai', '⟳ Running ' + KNOB_MODES[knobPos].name + '...');
   var btn = document.getElementById('knob-run-btn');
   if (btn) { btn.textContent = '···'; btn.disabled = true; }
   var restore = function() { if (btn) { btn.textContent = 'RUN'; btn.disabled = false; } };
   try {
-    KNOB_MODES[knobPos].fn();
-  } catch(e) {}
-  setTimeout(restore, 2000);
+    var result = KNOB_MODES[knobPos].fn();
+    if (result && typeof result.then === 'function') {
+      result.then(restore, restore);
+    } else {
+      setTimeout(restore, 2000);
+    }
+  } catch(e) {
+    restore();
+  }
 }
 
 // ── Scan ──────────────────────────────────────────────────────────────────────
@@ -1823,7 +1828,6 @@ async function runScan() {
     renderTracks(allTracks);
     renderProblems(d.problems || []);
     renderHealthChart(allTracks, trackScores);
-    saveState();
     toast('Loaded ' + allTracks.length + ' tracks');
 
     // Post scan summary to chat so results are visible
@@ -1840,10 +1844,10 @@ async function runScan() {
           : 'No critical issues detected. Select a mode for a deeper analysis.');
     addMessage('assistant', summary);
     chatHistory.push({role:'assistant', text:summary, meta:''});
+    saveState();
   } catch(e) {
     document.getElementById('ableton-dot').classList.remove('on');
-    var area = document.getElementById('chat-area');
-    if (area) area.innerHTML = '<div style="color:red;padding:8px;font-weight:bold">SCAN ERROR: ' + e.message + '</div>';
+    addMessage('ai', '⚠ Scan error: ' + e.message);
     toast('Scan error: ' + e.message, true);
   }
 }
@@ -2470,16 +2474,16 @@ async function runChordID(file) {
   var btn = document.getElementById('theme-btn');
   if (btn) btn.textContent = document.body.classList.contains('light') ? '◑' : '◐';
 })();
-loadState();
 drawKnob();
 fetchGain();
 setInterval(fetchGain, 2000);
-// Always run a fresh scan on load — don't rely on cached session state
-addMessage('ai', 'I\'m Explore — your AI mix engineer. Scanning your Ableton session now...');
-runScan();
-// Size sliders after layout is painted
 setTimeout(resizeGBSliders, 80);
 setTimeout(resizeGBSliders, 400);
+// Load saved state first, then run scan — prevents applyState() from wiping scan results
+loadState().then(function() {
+  addMessage('ai', 'I\'m Explore — your AI mix engineer. Scanning your Ableton session now...');
+  runScan();
+});
 
 // Chord ID — wire file input via addEventListener (more reliable than onchange attr)
 (function() {
