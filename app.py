@@ -574,7 +574,7 @@ body.light .track-row.selected{background:rgba(0,136,120,.07);border-left-color:
 body.light .type-midi{background:rgba(0,136,120,.1);color:#009888;}
 body.light .type-audio{background:rgba(104,32,184,.08);color:#6820B8;}
 body.light .msg.user .msg-bubble{background:rgba(0,136,120,.07);border-color:rgba(0,136,120,.18);}
-body.light .msg.ai .msg-bubble{background:#FFFFFF;border-color:#D4DCEE;box-shadow:0 1px 6px rgba(0,0,0,.05);}
+body.light .msg.ai .msg-bubble,body.light .msg.assistant .msg-bubble{background:#FFFFFF;border-color:#D4DCEE;box-shadow:0 1px 6px rgba(0,0,0,.05);color:#0E1422;}
 body.light .chat-input{background:#FFFFFF;border-color:#BCC8E0;color:#1A1E2E;}
 body.light .donut-bg{stroke:#DDE5F5;}
 body.light .chart-panel{background:linear-gradient(180deg,rgba(255,255,255,.7) 0%,rgba(255,255,255,.3) 100%);}
